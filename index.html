@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="der die das">
+  <meta name="theme-color" content="#eef1f5" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#11151c" media="(prefers-color-scheme: dark)">
+  <style>
+    html,body{height:100%}
+    :root{padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);color-scheme:light}
+    body{margin:0}
+    img{max-width:100%}
+    [hidden]{display:none!important}
+  </style>
+<title>der die das</title>
+
+<style>
+/* Layout: one-screen phone app — fixed header, flexible card stage, controls pinned low.
+   The three genders ARE the palette (der=blue, die=red, das=green); everything else stays quiet. */
+:root{
+  --bg:#eef1f5; --surface:#ffffff; --surface-2:#f6f8fb;
+  --fg:#18202e; --muted:#5d6b80; --line:#dde3ec; --faint:#eceff4;
+  --accent:#2d3a57;                       /* quiet structural ink */
+  --der:#2460c0; --der-bg:#e6eefb;        /* masculine */
+  --die:#c23350; --die-bg:#fce7eb;        /* feminine  */
+  --das:#1f8a63; --das-bg:#e3f4ec;        /* neuter    */
+  --good:#1f8a63; --bad:#c23350;
+  --r:16px; --font-display:"Fraunces",Georgia,"Times New Roman",serif;
+  --font-ui:"Hanken Grotesk",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#11151c; --surface:#1a212b; --surface-2:#161d26;
+  --fg:#e9edf3; --muted:#9aa7b8; --line:#28313f; --faint:#1e2631;
+  --accent:#c3cde6;
+  --der:#74a6ff; --der-bg:#1a2740;
+  --die:#ff879e; --die-bg:#3a1f28;
+  --das:#5ed29f; --das-bg:#143127;
+  --good:#5ed29f; --bad:#ff879e;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#11151c; --surface:#1a212b; --surface-2:#161d26;
+  --fg:#e9edf3; --muted:#9aa7b8; --line:#28313f; --faint:#1e2631;
+  --accent:#c3cde6;
+  --der:#74a6ff; --der-bg:#1a2740;
+  --die:#ff879e; --die-bg:#3a1f28;
+  --das:#5ed29f; --das-bg:#143127;
+  --good:#5ed29f; --bad:#ff879e;
+  color-scheme:dark;
+}
+
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);
+  -webkit-font-smoothing:antialiased;overflow:hidden}
+*{box-sizing:border-box}
+button{font-family:inherit;cursor:pointer;color:inherit}
+.tnum{font-variant-numeric:tabular-nums}
+
+#app{display:flex;flex-direction:column;height:100%;
+  max-width:560px;margin:0 auto;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));}
+
+/* header */
+header{display:flex;align-items:center;justify-content:space-between;
+  padding-block:14px 10px;flex:0 0 auto}
+.brand{font-family:var(--font-display);font-weight:600;font-size:1.15rem;
+  letter-spacing:-.01em;display:flex;gap:.12em}
+.brand .d1{color:var(--der)} .brand .d2{color:var(--die)} .brand .d3{color:var(--das)}
+.stat{font-size:.72rem;color:var(--muted);text-align:right;line-height:1.3}
+.stat b{color:var(--fg);font-weight:600}
+.linklike{background:none;border:0;color:var(--muted);font-size:.72rem;
+  text-decoration:underline;padding:2px 0}
+
+/* ---------- HOME ---------- */
+#home{flex:1 1 auto;overflow-y:auto;display:flex;flex-direction:column;gap:18px;
+  padding-bottom:20px}
+.lede{font-family:var(--font-display);font-size:1.5rem;line-height:1.2;
+  font-weight:500;text-wrap:balance;margin:4px 0 0}
+.lede small{display:block;font-family:var(--font-ui);font-size:.82rem;
+  font-weight:400;color:var(--muted);margin-top:6px;letter-spacing:.01em}
+
+.seg{display:flex;background:var(--faint);border:1px solid var(--line);
+  border-radius:12px;padding:4px;gap:4px}
+.seg button{flex:1;border:0;background:transparent;border-radius:9px;
+  padding:10px 8px;font-size:.86rem;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);
+  box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.seg .arrow{font-weight:400;opacity:.6}
+
+.section-label{font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--muted);font-weight:600}
+.decks{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.deck{display:flex;flex-direction:column;gap:3px;text-align:left;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  padding:14px 14px 13px;transition:transform .08s ease,border-color .15s}
+.deck:active{transform:scale(.98)}
+.deck .nm{font-weight:600;font-size:.95rem}
+.deck .ct{font-size:.74rem;color:var(--muted)}
+.deck.wide{grid-column:1 / -1;flex-direction:row;align-items:center;
+  justify-content:space-between}
+.deck.drill{border-color:transparent;
+  background:linear-gradient(135deg,var(--der-bg),var(--die-bg) 55%,var(--das-bg))}
+.deck.drill .nm{color:var(--fg)}
+.deck.tricky .nm::after{content:"";}
+
+/* ---------- STUDY ---------- */
+#study{flex:1 1 auto;display:flex;flex-direction:column;min-height:0}
+.topbar{display:flex;align-items:center;gap:12px;padding-block:6px 10px;flex:0 0 auto}
+.back{border:1px solid var(--line);background:var(--surface);border-radius:10px;
+  width:38px;height:38px;font-size:1.1rem;flex:0 0 auto;display:grid;place-items:center}
+.topmeta{flex:1 1 auto;min-width:0}
+.topmeta .nm{font-weight:600;font-size:.9rem;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+.topmeta .sub{font-size:.72rem;color:var(--muted)}
+.score{font-size:.78rem;color:var(--muted);text-align:right;flex:0 0 auto}
+.score b{color:var(--good);font-weight:700}
+
+.bar{height:5px;background:var(--faint);border-radius:99px;overflow:hidden;flex:0 0 auto}
+.bar>i{display:block;height:100%;width:0;background:var(--accent);
+  border-radius:99px;transition:width .25s ease}
+
+/* card stage */
+.stage{flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;
+  min-height:0;padding:10px 0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:22px;
+  padding:26px 20px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:16px;min-height:0;flex:1 1 auto;text-align:center;
+  box-shadow:0 2px 10px rgba(20,30,50,.05)}
+.kicker{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+  font-weight:600}
+.term{font-family:var(--font-display);font-weight:500;line-height:1.12;
+  font-size:clamp(1.9rem,8vw,3rem);text-wrap:balance;letter-spacing:-.01em}
+.term .art{font-style:italic}
+.term.der .art{color:var(--der)} .term.die .art{color:var(--die)} .term.das .art{color:var(--das)}
+.answer{font-size:clamp(1.15rem,5vw,1.5rem);font-weight:600}
+.example{font-size:.9rem;color:var(--muted);line-height:1.45;max-width:34ch;
+  border-top:1px solid var(--line);padding-top:12px;font-family:var(--font-display);
+  font-style:italic}
+.verdict{font-size:.82rem;font-weight:700;letter-spacing:.02em}
+.verdict.ok{color:var(--good)} .verdict.no{color:var(--bad)}
+
+/* controls */
+.controls{flex:0 0 auto;display:flex;flex-direction:column;gap:10px;
+  padding-block:12px calc(14px + env(safe-area-inset-bottom,0px))}
+.btn{border:0;border-radius:14px;padding:16px;font-size:1rem;font-weight:700;
+  width:100%;transition:transform .07s ease,filter .15s}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:var(--accent);color:var(--surface)}
+:root[data-theme="dark"] .btn.primary,
+:root:not([data-theme="light"]) .btn.primary{color:#11151c}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .btn.primary{color:#fff}}
+.btn.ghost{background:var(--surface);border:1px solid var(--line);color:var(--fg);font-weight:600}
+.row{display:flex;gap:10px}.row>*{flex:1}
+
+/* der/die/das choice buttons */
+.arts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.art-btn{border:2px solid var(--line);background:var(--surface);border-radius:14px;
+  padding:18px 6px 14px;font-weight:700;font-size:1.15rem;line-height:1;
+  display:flex;flex-direction:column;gap:4px;align-items:center;
+  transition:transform .07s ease,border-color .12s,background .12s}
+.art-btn small{font-size:.6rem;font-weight:600;letter-spacing:.06em;color:var(--muted);
+  text-transform:uppercase}
+.art-btn:active{transform:scale(.97)}
+.art-btn[data-k="der"]{color:var(--der)} .art-btn[data-k="der"].fill{background:var(--der-bg);border-color:var(--der)}
+.art-btn[data-k="die"]{color:var(--die)} .art-btn[data-k="die"].fill{background:var(--die-bg);border-color:var(--die)}
+.art-btn[data-k="das"]{color:var(--das)} .art-btn[data-k="das"].fill{background:var(--das-bg);border-color:var(--das)}
+.art-btn.wrong{border-color:var(--bad);background:transparent;opacity:.55}
+.art-btn:disabled{cursor:default}
+
+/* done screen */
+.done{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;gap:14px}
+.done .big{font-family:var(--font-display);font-size:2.6rem;font-weight:500;line-height:1}
+.done .pct{font-size:3.4rem;font-weight:800;color:var(--accent);line-height:1;
+  font-family:var(--font-ui)}
+.done p{color:var(--muted);font-size:.9rem;margin:0}
+
+.toggle{display:inline-flex;align-items:center;gap:10px;background:var(--faint);
+  border:1px solid var(--line);border-radius:12px;padding:11px 14px;font-size:.84rem;
+  font-weight:600;color:var(--fg);align-self:flex-start}
+.toggle .sw{width:34px;height:20px;border-radius:99px;background:var(--line);
+  position:relative;transition:background .15s;flex:0 0 auto}
+.toggle .sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;
+  border-radius:50%;background:var(--surface);transition:transform .15s;
+  box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.toggle[aria-pressed="true"] .sw{background:var(--das)}
+.toggle[aria-pressed="true"] .sw::after{transform:translateX(14px)}
+.spk{width:48px;height:48px;border-radius:50%;border:1px solid var(--line);
+  background:var(--surface-2);color:var(--fg);display:inline-grid;place-items:center;
+  transition:transform .07s ease,background .12s}
+.spk:active{transform:scale(.9)}
+.spk.speaking{color:var(--der);border-color:var(--der)}
+.hidden{display:none!important}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+:focus-visible{outline:2.5px solid var(--der);outline-offset:2px;border-radius:6px}
+</style>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..500&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap">
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand"><span class="d1">der</span><span class="d2">die</span><span class="d3">das</span></div>
+    <div class="stat" id="homeStat"></div>
+  </header>
+
+  <!-- HOME -->
+  <main id="home">
+    <h1 class="lede">German A1 flashcards
+      <small>Goethe / Start Deutsch 1 · ~650 words · tap to study</small>
+    </h1>
+
+    <div>
+      <div class="section-label" style="margin-bottom:8px">Direction</div>
+      <div class="seg" id="dirSeg" role="group" aria-label="Study direction">
+        <button data-dir="de" aria-pressed="true">German <span class="arrow">→</span> English</button>
+        <button data-dir="en" aria-pressed="false">English <span class="arrow">→</span> German</button>
+      </div>
+    </div>
+
+    <button class="toggle" id="audioToggle" aria-pressed="true">
+      <span class="sw"></span> Speak German aloud
+    </button>
+
+    <div>
+      <div class="section-label" style="margin-bottom:8px">Decks</div>
+      <div class="decks" id="deckGrid"></div>
+    </div>
+
+    <button class="linklike" id="resetBtn" style="align-self:flex-start">Reset my progress</button>
+  </main>
+
+  <!-- STUDY -->
+  <section id="study" class="hidden">
+    <div class="topbar">
+      <button class="back" id="backBtn" aria-label="Back to decks">←</button>
+      <div class="topmeta"><div class="nm" id="deckName"></div><div class="sub" id="deckSub"></div></div>
+      <div class="score" id="scoreBox"></div>
+    </div>
+    <div class="bar"><i id="barFill"></i></div>
+
+    <div class="stage" id="stage"></div>
+
+    <div class="controls" id="controls"></div>
+  </section>
+</div>
+
+<script>
+/* ---------------- data ---------------- */
+const WORDS = [{"g":"ab","e":"from; off","a":"","c":"word","x":"Ab morgen muss ich arbeiten."},{"g":"aber","e":"but","a":"","c":"word","x":"Ich bin oft im Büro, aber nur für wenige Stunden."},{"g":"abfahren","e":"to depart","a":"","c":"verb","x":"Wir fahren um zwölf Uhr ab."},{"g":"die Abfahrt","e":"the departure","a":"die","c":"noun","x":"Vor der Abfahrt rufe ich an."},{"g":"abgeben","e":"to hand in","a":"","c":"verb","x":"Ich muss meine Schlüssel abgeben."},{"g":"abholen","e":"to pick up","a":"","c":"verb","x":"Wann kann ich den Schrank bei dir abholen?"},{"g":"der Absender","e":"the sender","a":"der","c":"noun","x":"Da ist ein Brief für dich ohne Absender."},{"g":"Achtung","e":"attention; look out","a":"","c":"word","x":"Achtung! Das dürfen Sie nicht tun."},{"g":"die Adresse","e":"the address","a":"die","c":"noun","x":"Können Sie mir seine Adresse sagen?"},{"g":"all-","e":"all; everything","a":"","c":"word","x":"Alles Gute!"},{"g":"allein","e":"alone","a":"","c":"verb","x":"Er kommt allein."},{"g":"also","e":"so; therefore","a":"","c":"word","x":"Also, es ist so: ..."},{"g":"alt","e":"old","a":"","c":"word","x":"Wie alt sind Sie?"},{"g":"das Alter","e":"the age","a":"das","c":"noun","x":"Alter: 26 Jahre."},{"g":"an","e":"at; on","a":"","c":"verb","x":"Fahren Sie an der nächsten Straße nach rechts."},{"g":"anbieten","e":"to offer","a":"","c":"verb","x":"Was darf ich dir anbieten?"},{"g":"das Angebot","e":"the offer","a":"das","c":"noun","x":"Heute sind Sportschuhe im Angebot."},{"g":"ander-","e":"other","a":"","c":"word","x":"WiIlst du diese Jacke?"},{"g":"anfangen","e":"to begin","a":"","c":"verb","x":"Hier fängt die Bahnhofstraße an."},{"g":"der Anfang","e":"the beginning","a":"der","c":"noun","x":"Sie wohnt am Anfang der Straße."},{"g":"anklicken","e":"to click (on)","a":"","c":"verb","x":"Da musst du dieses Wort anklicken."},{"g":"ankommen","e":"to arrive","a":"","c":"verb","x":"Wann kommt dieser Zug in Hamburg an?"},{"g":"die Ankunft","e":"the arrival","a":"die","c":"noun","x":"Auf diesem Plan steht nur die Ankunft(-szeit) der"},{"g":"ankreuzen","e":"to tick (mark a cross)","a":"","c":"verb","x":"Auf dem Formular müssen Sie an mehreren Stellen"},{"g":"anmachen","e":"to turn on","a":"","c":"verb","x":"Mach bitte das Licht an!"},{"g":"(sich) anmelden","e":"to register; sign up","a":"","c":"word","x":"Wo kann ich mich anmelden?"},{"g":"die Anmeldung","e":"the registration","a":"die","c":"noun","x":"Eine Anmeldung für diesen Kurs ist nicht mehr möglich."},{"g":"die Anrede","e":"the form of address","a":"die","c":"noun","x":"Schreiben Sie auch eine Anrede und einen Gruß."},{"g":"anrufen","e":"to call (phone)","a":"","c":"verb","x":"Kann man Sie anrufen?"},{"g":"der Anruf","e":"the (phone) call","a":"der","c":"noun","x":"Sie bekommt viele Anrufe auf ihrem Handy."},{"g":"der Anrufbeantworter","e":"the answering machine","a":"der","c":"noun","x":"Wir sind im Moment nicht da. Sprechen Sie bitte auf"},{"g":"die Ansage","e":"the announcement","a":"die","c":"noun","x":"Hören Sie die Ansagen."},{"g":"der Anschluss","e":"the connection","a":"der","c":"noun","x":"In Mannheim haben Sie Anschluss nach Saarbrücken."},{"g":"an sein","e":"to be on (switched on)","a":"","c":"word","x":"Heute Nacht war das Licht an."},{"g":"antworten","e":"to answer","a":"","c":"verb","x":"Er antwortet nicht."},{"g":"die Antwort","e":"the answer","a":"die","c":"noun","x":"Er gibt leider keine Antwort."},{"g":"die Anzeige","e":"the advertisement; notice","a":"die","c":"noun","x":"Ich habe Ihre Anzeige in der Zeitung gelesen."},{"g":"(sich) anziehen","e":"to get dressed; put on","a":"","c":"word","x":"Ich muss mich noch anziehen."},{"g":"das Apartment","e":"the apartment","a":"das","c":"noun","x":"Wir haben ein Apartment gemietet."},{"g":"der Apfel","e":"the apple","a":"der","c":"noun","x":"Ein Pfund Äpfel bitte."},{"g":"der Appetit","e":"the appetite","a":"der","c":"noun","x":"Guten Appetit!"},{"g":"arbeiten","e":"to work","a":"","c":"verb","x":"Wo arbeiten Sie?"},{"g":"die Arbeit","e":"the work; job","a":"die","c":"noun","x":"Mein Bruder sucht Arbeit."},{"g":"arbeitslos","e":"unemployed","a":"","c":"word","x":"Es gibt bei uns viele Leute, die schon lange arbeitslos"},{"g":"der Arbeitsplatz","e":"the workplace","a":"der","c":"noun","x":"e An meinem Arbeitsplatz fehlt ein Drucker."},{"g":"der Arm","e":"the arm","a":"der","c":"noun","x":"Mein Arm tut weh."},{"g":"der Arzt","e":"the doctor","a":"der","c":"noun","x":"Morgen habe ich einen Termin bei meiner Ärztin."},{"g":"auch","e":"also; too","a":"","c":"word","x":"Ich bin auch Spanier."},{"g":"auf","e":"on; open","a":"","c":"word","x":"Die Kinder spielen auf der Straße."},{"g":"die Aufgabe","e":"the task; exercise","a":"die","c":"noun","x":"Das ist eine schwere Aufgabe."},{"g":"aufhören","e":"to stop","a":"","c":"verb","x":"Der Kurs hört in einer Woche auf."},{"g":"auf sein","e":"to be open","a":"","c":"word","x":"Du brauchst den Schlüssel nicht. Die Wohnung ist auf."},{"g":"aufstehen","e":"to get up","a":"","c":"verb","x":"Ich muss immer um vier Uhr aufstehen."},{"g":"der Aufzug","e":"the elevator; lift","a":"der","c":"noun","x":"In diesem Haus gibt es keinen Aufzug."},{"g":"das Auge","e":"the eye","a":"das","c":"noun","x":"Er hat blaue Augen."},{"g":"aus","e":"from; out of","a":"","c":"word","x":"Er kommt aus Brasilien."},{"g":"der Ausflug","e":"the excursion; trip","a":"der","c":"noun","x":"Morgen machen wir einen Ausflug nach Heidelberg."},{"g":"ausfüllen","e":"to fill out","a":"","c":"verb","x":"Füllen Sie bitte dieses Formular aus."},{"g":"der Ausgang","e":"the exit","a":"der","c":"noun","x":"Wo ist der Ausgang?"},{"g":"die Auskunft","e":"the information (desk)","a":"die","c":"noun","x":"Können Sie mir eine Auskunft geben?"},{"g":"das Ausland","e":"abroad","a":"das","c":"noun","x":"Fahren Sie ins Ausland?"},{"g":"der Ausländer","e":"the foreigner","a":"der","c":"noun","x":"SInd Sie Ausländerin?"},{"g":"ausländisch","e":"foreign","a":"","c":"word","x":"Leider habe ich nur ausländisches Geld."},{"g":"ausmachen","e":"to turn off","a":"","c":"verb","x":"Mach bitte das Licht aus!"},{"g":"die Aussage","e":"the statement","a":"die","c":"noun","x":"Ist die Aussage richtig oder falsch?"},{"g":"aussehen","e":"to look; appear","a":"","c":"verb","x":"Das sieht schön aus."},{"g":"aus sein","e":"to be off (switched off)","a":"","c":"word","x":"Das Licht ist aus."},{"g":"aussteigen","e":"to get off (a vehicle)","a":"","c":"verb","x":"Wo muss ich aussteigen?"},{"g":"der Ausweis","e":"the ID card","a":"der","c":"noun","x":"Hier ist mein Ausweis."},{"g":"(sich) ausziehen","e":"to get undressed; take off","a":"","c":"word","x":"Zieh die Schuhe aus, bitte!"},{"g":"das Auto","e":"the car","a":"das","c":"noun","x":"Er kommt mit dem Auto."},{"g":"die Autobahn","e":"the motorway; highway","a":"die","c":"noun","x":"Wo geht‘s hier bitte zur Autobahn?"},{"g":"der Automat","e":"the vending machine","a":"der","c":"noun","x":"Die Fahrkarten gibt es nur am Automaten."},{"g":"automatisch","e":"automatic","a":"","c":"word","x":"Du musst nichts machen. Das geht automatisch."},{"g":"das Baby","e":"the baby","a":"das","c":"noun","x":"Mein Kind ist noch ein Baby."},{"g":"die Bäckerei","e":"the bakery","a":"die","c":"noun","x":"Ich geh mal schnell zur Bäckerei."},{"g":"das Bad","e":"the bathroom; bath","a":"das","c":"noun","x":"Wir haben kein großes Bad."},{"g":"baden","e":"to bathe","a":"","c":"verb","x":"Ich bade nicht so gern, ich dusche lieber."},{"g":"die Bahn","e":"the train; railway","a":"die","c":"noun","x":"Wir fahren lieber mit der Bahn."},{"g":"der Bahnhof","e":"the train station","a":"der","c":"noun","x":"Komme ich hier zum Bahnhof?"},{"g":"der Bahnsteig","e":"the platform","a":"der","c":"noun","x":"Auf welchem Bahnsteig fährt der Zug?"},{"g":"bald","e":"soon","a":"","c":"word","x":"Ich komme bald."},{"g":"der Balkon","e":"the balcony","a":"der","c":"noun","x":"Die Wohnung hat auch einen kleinen Balkon."},{"g":"die Banane","e":"the banana","a":"die","c":"noun","x":"Drei Bananen, bitte!"},{"g":"die Bank","e":"the bank; bench","a":"die","c":"noun","x":"Die Bank schließt schon um vier Uhr."},{"g":"bar","e":"(in) cash","a":"","c":"word","x":"Muss ich bar zahlen oder geht‘s auch mit Karte?"},{"g":"der Bauch","e":"the belly; stomach","a":"der","c":"noun","x":"Seit gestern tut mir der Bauch weh."},{"g":"der Baum","e":"the tree","a":"der","c":"noun","x":"Vorsicht, fahr nicht an den Baum!"},{"g":"der Beamte","e":"the official; civil servant","a":"der","c":"noun","x":"Fragen Sie die Beamtin an Schalter acht!"},{"g":"bedeuten","e":"to mean","a":"","c":"verb","x":"Was bedeutet das Wort?"},{"g":"beginnen","e":"to begin","a":"","c":"verb","x":"Das Spiel beginnt um 15.30 Uhr."},{"g":"bei","e":"at; near; with","a":"","c":"word","x":"Offenbach liegt bei Frankfurt."},{"g":"beide","e":"both","a":"","c":"word","x":"Beide Eltern arbeiten."},{"g":"das Bein","e":"the leg","a":"das","c":"noun","x":"Mein rechtes Bein tut weh."},{"g":"das Beispiel","e":"the example","a":"das","c":"noun","x":"Kannst du mir ein Beispiel sagen?"},{"g":"zum Beispiel/z. B.","e":"for example","a":"","c":"word","x":"Viele meiner Verwandten, z. B. meine beiden"},{"g":"bekannt","e":"known; well-known","a":"","c":"word","x":"Picasso ist sehr bekannt."},{"g":"der/die Bekannte","e":"the acquaintance","a":"der","c":"noun","x":"-n Ein Bekannter von mir heißt Klaus."},{"g":"bekommen","e":"to get; receive","a":"","c":"verb","x":"Haben Sie meinen Brief bekommen?"},{"g":"benutzen","e":"to use","a":"","c":"verb","x":"Die Aufzüge bitte nicht benutzen!"},{"g":"der Beruf","e":"the profession; job","a":"der","c":"noun","x":"Was sind Sie von Beruf?"},{"g":"besetzt","e":"occupied; busy","a":"","c":"word","x":"Die Nummer ist immer besetzt."},{"g":"besichtigen","e":"to visit; view (sightseeing)","a":"","c":"verb","x":"Ich möchte gern den Dom besichtigen."},{"g":"besser","e":"better","a":"","c":"word","x":"Es geht mir schon besser."},{"g":"best-","e":"best","a":"","c":"word","x":"Am besten treffen wir uns morgen."},{"g":"bestellen","e":"to order","a":"","c":"verb","x":"Wir möchten bestellen, bitte."},{"g":"besuchen","e":"to visit","a":"","c":"verb","x":"Darf ich dich besuchen?"},{"g":"das Bett","e":"the bed","a":"das","c":"noun","x":"Wir brauchen noch ein Kinderbett."},{"g":"bezahlen","e":"to pay","a":"","c":"verb","x":"Wo muss ich bezahlen?"},{"g":"das Bier","e":"the beer","a":"das","c":"noun","x":"Noch ein Bier bitte."},{"g":"das Bild","e":"the picture","a":"das","c":"noun","x":"Hast du ein Bild von deinem Sohn?"},{"g":"billig","e":"cheap","a":"","c":"word","x":"Die Jacke kostet nur 10 Euro! Die ist aber billig!"},{"g":"die Birne","e":"the pear; light bulb","a":"die","c":"noun","x":"Ein Kilo Birnen, bitte!"},{"g":"bis","e":"until","a":"","c":"word","x":"Ich fahre nur bis Stuttgart."},{"g":"bisschen","e":"a little; a bit","a":"","c":"verb","x":"Ich spreche Englisch, Französisch und ein bisschen"},{"g":"bitte","e":"please","a":"","c":"word","x":"Eine Tasse Kaffee, bitte!"},{"g":"die Bitte","e":"the request","a":"die","c":"noun","x":"Ich habe noch eine Bitte."},{"g":"bitten","e":"to ask for; request","a":"","c":"verb","x":"Darf ich Sie um etwas bitten?"},{"g":"bitter","e":"bitter","a":"","c":"word","x":"Der Kaffee schmeckt bitter."},{"g":"bleiben","e":"to stay","a":"","c":"verb","x":"Ich bleibe heute zu Hause."},{"g":"der Bleistift","e":"the pencil","a":"der","c":"noun","x":"Hast du einen Bleistift?"},{"g":"der Blick","e":"the view; glance","a":"der","c":"noun","x":"Von diesem Hotel hat man einen guten Blick auf den"},{"g":"die Blume","e":"the flower","a":"die","c":"noun","x":"Gefallen dir die Blumen?"},{"g":"der Bogen","e":"the sheet (of paper)","a":"der","c":"noun","x":"Schreiben Sie Ihre Lösungen bitte auf den Antwortbogen."},{"g":"böse","e":"angry; mean","a":"","c":"word","x":"Sie ist böse auf mich."},{"g":"brauchen","e":"to need","a":"","c":"verb","x":"Brauchst du die Zeitung noch?"},{"g":"breit","e":"wide","a":"","c":"word","x":"Wie breit ist der Schrank?"},{"g":"der Brief","e":"the letter","a":"der","c":"noun","x":"Haben Sie einen Brief für mich?"},{"g":"die Briefmarke","e":"the stamp","a":"die","c":"noun","x":"Kaufst du bitte Briefmarken bei der Post."},{"g":"bringen","e":"to bring","a":"","c":"verb","x":"Bringen Sie mir bitte noch einen Kaffee!"},{"g":"das Brot","e":"the bread","a":"das","c":"noun","x":"Haben Sie auch Weißbrot?"},{"g":"das Brötchen","e":"the bread roll","a":"das","c":"noun","x":"Möchtest du Brötchen zum Frühstück?"},{"g":"der Bruder","e":"the brother","a":"der","c":"noun","x":"Sein Bruder arbeitet auch hier."},{"g":"das Buch","e":"the book","a":"das","c":"noun","x":"Gute Bücher sind oft sehr teuer."},{"g":"der Buchstabe","e":"the letter (of the alphabet)","a":"der","c":"noun","x":"Diesen Buchstaben gibt es in meiner Sprache nicht."},{"g":"buchstabieren","e":"to spell","a":"","c":"verb","x":"Bitte buchstabieren Sie Ihren Namen."},{"g":"der Bus","e":"the bus","a":"der","c":"noun","x":"Wann kommt der nächste Bus?"},{"g":"die Butter","e":"the butter","a":"die","c":"noun","x":"Für mich bitte ein Brötchen mit Butter und Käse."},{"g":"das Café","e":"the café","a":"das","c":"noun","x":"Sollen wir uns im Café treffen?"},{"g":"die CD","e":"the CD","a":"die","c":"noun","x":"Bring bitte deine Lieblings-CD mit."},{"g":"der Chef","e":"the boss","a":"der","c":"noun","x":"Wir haben eine neue Chefin."},{"g":"circa/ca.","e":"approximately; about","a":"","c":"word","x":"Von Mainz nach Frankfurt sind es circa fünfzig"},{"g":"der Computer","e":"the computer","a":"der","c":"noun","x":"Wann bekommst du deinen neuen Computer?"},{"g":"da","e":"there; here","a":"","c":"word","x":"Da hinten ist er ja."},{"g":"die Dame","e":"the lady","a":"die","c":"noun","x":"Damen (an der Toilette)"},{"g":"daneben","e":"next to it; beside","a":"","c":"verb","x":"Du kennst doch die Post. Daneben ist die Bank."},{"g":"danken","e":"to thank","a":"","c":"verb","x":"Ich danke Ihnen für die Einladung."},{"g":"der Dank","e":"the thanks; gratitude","a":"der","c":"noun","x":"Vielen Dank!"},{"g":"danke","e":"thank you","a":"","c":"word","x":"Soll ich Ihnen helfen? - Nein, danke!"},{"g":"dann","e":"then","a":"","c":"verb","x":"Ich muss noch schnell zur Post, dann komme ich."},{"g":"das Datum","e":"the date","a":"das","c":"noun","x":"Bitte schreiben Sie noch das Datum auf das Formular."},{"g":"dauern","e":"to last; take (time)","a":"","c":"verb","x":"Wie lange dauert der Film?"},{"g":"dein-","e":"your (informal)","a":"","c":"word","x":"Ist das dein Auto?"},{"g":"denn","e":"because; (particle)","a":"","c":"verb","x":"Ich kann nicht kommen, denn ich bin krank."},{"g":"der","e":"the","a":"","c":"word","x":"Ich nehme das da."},{"g":"dich","e":"you (informal, object)","a":"","c":"word","x":"Die Blumen sind für dich."},{"g":"dies-","e":"this","a":"","c":"word","x":"Ich nehme lieber diesen Kuchen."},{"g":"dir","e":"(to) you (informal)","a":"","c":"word","x":"Gefallen dir die Blumen?"},{"g":"die Disco","e":"the disco; club","a":"die","c":"noun","x":"Heute abend gehen wir in die Disco tanzen."},{"g":"der Doktor","e":"the doctor","a":"der","c":"noun","x":"Meine Tochter ist krank. Wir gehen zum Doktor."},{"g":"das Doppelzimmer","e":"the double room","a":"das","c":"noun","x":"Wollen Sie ein Doppelzimmer oder ein Einzelzimmer?"},{"g":"das Dorf","e":"the village","a":"das","c":"noun","x":"Meine Familie lebt in einem Dorf."},{"g":"dort","e":"there","a":"","c":"word","x":"Deine Tasche kannst du dorthin stellen."},{"g":"draußen","e":"outside","a":"","c":"verb","x":"Wollen wir draußen sitzen?"},{"g":"drucken","e":"to print","a":"","c":"verb","x":"Bitte drucke das Formular für mich."},{"g":"der Drucker","e":"the printer","a":"der","c":"noun","x":"Mein Drucker ist kaputt."},{"g":"drücken","e":"to press; push","a":"","c":"verb","x":"Drück hier, dann geht der Computer an."},{"g":"durch","e":"through","a":"","c":"word","x":"Am besten gehen Sie durch die Breite Straße."},{"g":"die Durchsage","e":"the announcement","a":"die","c":"noun","x":"Ich habe die Durchsage nicht verstanden."},{"g":"dürfen","e":"to be allowed to; may","a":"","c":"verb","x":"Sie dürfen hier nicht rauchen."},{"g":"der Durst","e":"the thirst","a":"der","c":"noun","x":"Hast du etwas zu trinken? Ich habe großen Durst."},{"g":"(sich) duschen","e":"to shower","a":"","c":"word","x":"Ich bade nicht so gern, ich dusche lieber."},{"g":"die Dusche","e":"the shower","a":"die","c":"noun","x":"Unsere Wohnung hat nur eine Dusche."},{"g":"die Ecke","e":"the corner","a":"die","c":"noun","x":"An der nächsten Ecke links."},{"g":"die Ehefrau","e":"the wife","a":"die","c":"noun","x":""},{"g":"der Ehemann","e":"the husband","a":"der","c":"noun","x":"Das ist mein (Ehe-) Mann/meine (Ehe-) Frau."},{"g":"das Ei","e":"the egg","a":"das","c":"noun","x":"Möchtest du ein Ei zum Frühstück?"},{"g":"eilig","e":"urgent; in a hurry","a":"","c":"word","x":"Hast du es eilig?"},{"g":"ein-","e":"a; one","a":"","c":"word","x":"Ich nehme ein Bier. Willst du auch eins?"},{"g":"einfach","e":"simple; easy","a":"","c":"word","x":"Die Prüfung ist ganz einfach."},{"g":"der Eingang","e":"the entrance","a":"der","c":"noun","x":"Der Eingang ist um die Ecke."},{"g":"einkaufen","e":"to shop; go shopping","a":"","c":"verb","x":"Ich muss noch für morgen einkaufen."},{"g":"einladen","e":"to invite","a":"","c":"verb","x":"Darf ich Sie zu einem Kaffee einladen?"},{"g":"die Einladung","e":"the invitation","a":"die","c":"noun","x":"Danke für die Einladung!"},{"g":"einmal","e":"once","a":"","c":"word","x":"Diese Prüfung mache ich nicht noch einmal."},{"g":"einsteigen","e":"to get in/on (a vehicle)","a":"","c":"verb","x":"Schnell, steig ein, der Zug fährt gleich."},{"g":"der Eintritt","e":"the admission; entry","a":"der","c":"noun","x":"Der Preis für den Eintritt ist 5 Euro."},{"g":"das Einzelzimmer","e":"the single room","a":"das","c":"noun","x":"Haben Sie noch ein Einzelzimmer?"},{"g":"die Eltern (pl.)","e":"the parents","a":"die","c":"noun","x":"Meine Eltern leben in Spanien."},{"g":"die E-Mail","e":"the email","a":"die","c":"noun","x":"Ich habe Ihre E-Mail nicht bekommen."},{"g":"der Empfänger","e":"the recipient","a":"der","c":"noun","x":"Auf dem Brief steht dein Name, also bist du der"},{"g":"empfehlen","e":"to recommend","a":"","c":"verb","x":"Welchen Wein können Sie mir empfehlen?"},{"g":"enden","e":"to end","a":"","c":"verb","x":"Die Straße endet hier."},{"g":"das Ende","e":"the end","a":"das","c":"noun","x":"Sie wohnt am Ende der Straße."},{"g":"entschuldigen","e":"to excuse; apologize","a":"","c":"verb","x":"Entschuldigen Sie bitte!"},{"g":"die Entschuldigung","e":"the apology; excuse me","a":"die","c":"noun","x":"Entschuldigung! – Bitte."},{"g":"er","e":"he","a":"","c":"word","x":"Er heißt Ali."},{"g":"das Ergebnis","e":"the result","a":"das","c":"noun","x":"Das Ergebnis des Tests bekommen Sie in zwei Wochen."},{"g":"erklären","e":"to explain","a":"","c":"verb","x":"Kannst du mir das erklären?"},{"g":"erlauben","e":"to allow","a":"","c":"verb","x":"Rauchen ist hier nicht erlaubt."},{"g":"der Erwachsene","e":"the adult","a":"der","c":"noun","x":"Dieser Film ist nur für Erwachsene."},{"g":"erzählen","e":"to tell; narrate","a":"","c":"verb","x":"Wir müssen euch etwas erzählen!"},{"g":"es","e":"it","a":"","c":"word","x":"Es regnet."},{"g":"essen","e":"to eat","a":"","c":"verb","x":"Was gibt es zu essen?"},{"g":"das Essen","e":"the food; meal","a":"das","c":"noun","x":"Das Essen ist heute sehr gut."},{"g":"euer","e":"your (plural, informal)","a":"","c":"word","x":"Euer Kurs beginnt heute."},{"g":"fahren","e":"to drive; go","a":"","c":"verb","x":"Ich fahre mit dem Auto zur Arbeit."},{"g":"der Fahrer","e":"the driver","a":"der","c":"noun","x":"Bitte nicht mit dem Fahrer sprechen!"},{"g":"die Fahrkarte","e":"the ticket","a":"die","c":"noun","x":"Hast du schon eine Fahrkarte?"},{"g":"das Fahrrad","e":"the bicycle","a":"das","c":"noun","x":"Fährst du mit dem Fahrrad oder mit dem Auto?"},{"g":"falsch","e":"wrong; false","a":"","c":"word","x":"Das ist falsch."},{"g":"die Familie","e":"the family","a":"die","c":"noun","x":"Meine Familie lebt in Spanien."},{"g":"der Familienname","e":"the surname","a":"der","c":"noun","x":"Meine Familiennamen sind García González."},{"g":"der Familienstand","e":"the marital status","a":"der","c":"noun","x":"Bei „Familienstand“ musst du „ledig“ ankreuzen."},{"g":"die Farbe","e":"the colour","a":"die","c":"noun","x":"Die Farbe gefällt mir gut."},{"g":"das Fax","e":"the fax","a":"das","c":"noun","x":"Schicken Sie uns einfach ein Fax!"},{"g":"Feier-","e":"celebration; holiday (prefix)","a":"","c":"word","x":"z. B. Feierabend, Feiertag"},{"g":"feiern","e":"to celebrate","a":"","c":"verb","x":"Wir feiern heute meinen Geburtstag."},{"g":"fehlen","e":"to be missing; be absent","a":"","c":"verb","x":"Herr Müller ist nicht da, er fehlt schon seit drei Tagen."},{"g":"der Fehler","e":"the mistake","a":"der","c":"noun","x":"Diesen Fehler mache ich immer."},{"g":"fernsehen","e":"to watch TV","a":"","c":"verb","x":"Wollen wir heute Abend mal fernsehen?"},{"g":"fertig","e":"ready; finished","a":"","c":"word","x":"Bist du fertig?"},{"g":"das Feuer","e":"the fire","a":"das","c":"noun","x":"Haben Sie Feuer?"},{"g":"das Fieber","e":"the fever","a":"das","c":"noun","x":"Mein Mann hat noch immer Fieber."},{"g":"der Film","e":"the film; movie","a":"der","c":"noun","x":"Ich möchte gern diesen Film sehen."},{"g":"finden","e":"to find","a":"","c":"verb","x":"Wir müssen den Schlüssel finden."},{"g":"die Firma","e":"the company; firm","a":"die","c":"noun","x":"Er arbeitet jetzt bei einer anderen Firma."},{"g":"der Fisch","e":"the fish","a":"der","c":"noun","x":"Ich esse gern Fisch. Fleisch mag ich nicht."},{"g":"die Flasche","e":"the bottle","a":"die","c":"noun","x":"Eine Flasche Bier, bitte."},{"g":"das Fleisch","e":"the meat","a":"das","c":"noun","x":"Fleisch mag ich nicht."},{"g":"fliegen","e":"to fly","a":"","c":"verb","x":"Ich fliege nicht gern. Deshalb fahre ich mit dem Zug."},{"g":"abfliegen","e":"to take off (by plane)","a":"","c":"verb","x":"Wann fliegst du ab?"},{"g":"der Abflug","e":"the departure (flight)","a":"der","c":"noun","x":"Der Abflug ist um 11.20 Uhr."},{"g":"der Flughafen","e":"the airport","a":"der","c":"noun","x":"Kannst du mich zum Flughafen bringen?"},{"g":"das Flugzeug","e":"the airplane","a":"das","c":"noun","x":"Das Flugzeug aus Berlin kommt heute später an."},{"g":"das Formular","e":"the form","a":"das","c":"noun","x":"Sie müssen dieses Formular ausfüllen."},{"g":"das Foto","e":"the photo","a":"das","c":"noun","x":"Darf ich ein Foto machen?"},{"g":"fragen","e":"to ask","a":"","c":"verb","x":"Er möchte Sie etwas fragen. Wann kommen Sie?"},{"g":"die Frage","e":"the question","a":"die","c":"noun","x":"Ich habe eine Frage."},{"g":"die Frau","e":"the woman; Mrs/Ms","a":"die","c":"noun","x":"Das ist Frau Becker."},{"g":"frei","e":"free; available","a":"","c":"word","x":"Ist der Platz noch frei?"},{"g":"die Freizeit","e":"the free time; leisure","a":"die","c":"noun","x":"In meiner Freizeit spiele ich oft Fußball."},{"g":"fremd","e":"foreign; strange","a":"","c":"word","x":"Das weiß ich nicht; ich bin fremd hier."},{"g":"(sich) freuen","e":"to be glad; look forward","a":"","c":"word","x":"Ich freue mich auf den Urlaub."},{"g":"der Freund","e":"the friend","a":"der","c":"noun","x":"Das ist ein Freund von mir."},{"g":"früher","e":"earlier; in the past","a":"","c":"word","x":"Früher waren wir oft zusammen im Kino."},{"g":"frühstücken","e":"to have breakfast","a":"","c":"verb","x":"Am Sonntag frühstücke ich gern im Bett."},{"g":"das Frühstück","e":"the breakfast","a":"das","c":"noun","x":"Möchtest du ein Ei zum Frühstück?"},{"g":"die Führung","e":"the guided tour","a":"die","c":"noun","x":"Die Führung durch das Haus beginnt in 3 Minuten."},{"g":"für","e":"for","a":"","c":"word","x":"Das ist für Sie."},{"g":"der Fuß","e":"the foot","a":"der","c":"noun","x":"Der linke Fuß tut mir weh."},{"g":"der Fußball","e":"the football; soccer","a":"der","c":"noun","x":"Spielt ihr gerne Fußball?"},{"g":"der Garten","e":"the garden","a":"der","c":"noun","x":"Wir haben leider keinen Garten."},{"g":"der Gast","e":"the guest","a":"der","c":"noun","x":"Am Wochenende haben wir mehrere Gäste."},{"g":"geben","e":"to give","a":"","c":"verb","x":"Kannst du mir bitte deinen Kugelschreiber geben?"},{"g":"geboren","e":"born","a":"","c":"verb","x":"Ich bin in Zagreb geboren."},{"g":"das Geburtsjahr","e":"the year of birth","a":"das","c":"noun","x":"Das Geburtsjahr Ihres Sohnes, bitte?"},{"g":"der Geburtsort","e":"the place of birth","a":"der","c":"noun","x":"Bitte schreiben Sie Ihren Geburtsort auf das Formular."},{"g":"der Geburtstag","e":"the birthday","a":"der","c":"noun","x":"Herzlichen Glückwunsch zum Geburtstag!"},{"g":"gefallen","e":"to please; be liked","a":"","c":"verb","x":"Das gefällt mir."},{"g":"gegen","e":"against; around","a":"","c":"verb","x":"Fahr nicht gegen den Baum!"},{"g":"gehen","e":"to go; walk","a":"","c":"verb","x":"Ich weiß nicht, wie das geht."},{"g":"gehören","e":"to belong","a":"","c":"verb","x":"Wem gehört das?"},{"g":"das Geld","e":"the money","a":"das","c":"noun","x":"Hast du noch Geld?"},{"g":"das Gemüse","e":"the vegetables","a":"das","c":"noun","x":"Gemüse brauchen wir auch noch."},{"g":"das Gepäck","e":"the luggage","a":"das","c":"noun","x":"Wollen Sie Ihr Gepäck mitnehmen?"},{"g":"gerade","e":"just; straight","a":"","c":"word","x":"Da kommt er ja gerade."},{"g":"geradeaus","e":"straight ahead","a":"","c":"word","x":"Gehen Sie immer geradeaus!"},{"g":"gern(e)","e":"gladly; (to like doing)","a":"","c":"word","x":"Ich gehe gerne einkaufen."},{"g":"das Geschäft","e":"the shop; business","a":"das","c":"noun","x":"Die Geschäfte schließen um 18.30 Uhr."},{"g":"das Geschenk","e":"the gift","a":"das","c":"noun","x":"Danke für das schöne Geschenk."},{"g":"die Geschwister (pl.)","e":"the siblings","a":"die","c":"noun","x":"Ich habe leider keine Geschwister."},{"g":"das Gespräch","e":"the conversation","a":"das","c":"noun","x":"Das Gespräch mit Frau Kunz ist um 14 Uhr."},{"g":"gestern","e":"yesterday","a":"","c":"verb","x":"Gestern war ich krank."},{"g":"gestorben","e":"died; dead","a":"","c":"verb","x":"Meine Frau ist gestern gestorben."},{"g":"das Getränk","e":"the drink","a":"das","c":"noun","x":"Mein Lieblingsgetränk ist Tomatensaft."},{"g":"das Gewicht","e":"the weight","a":"das","c":"noun","x":"Bei „Gewicht“ schreibst du: 62 Kilo."},{"g":"gewinnen","e":"to win","a":"","c":"verb","x":"Wer gewinnt das Spiel?"},{"g":"das Glas","e":"the glass","a":"das","c":"noun","x":"Bitte noch ein Glas Wein!"},{"g":"glauben","e":"to believe; think","a":"","c":"verb","x":"Sie können mir glauben, es ist so."},{"g":"gleich","e":"same; right away","a":"","c":"word","x":"Das ist mir gleich."},{"g":"das Gleis","e":"the track; platform","a":"das","c":"noun","x":"Der ICE nach Berlin hält heute an Gleis 12."},{"g":"das Glück","e":"the luck; happiness","a":"das","c":"noun","x":"Viel Glück!"},{"g":"glücklich","e":"happy","a":"","c":"word","x":"Meine Kinder sind glücklich verheiratet."},{"g":"der Glückwunsch","e":"the congratulations","a":"der","c":"noun","x":"Herzlichen Glückwunsch zum Geburtstag."},{"g":"Grad (Celsius)","e":"degree (Celsius)","a":"","c":"word","x":"Heute haben wir dreißig Grad."},{"g":"gratulieren","e":"to congratulate","a":"","c":"verb","x":"Ich gratuliere dir!"},{"g":"grillen","e":"to grill; barbecue","a":"","c":"verb","x":"Heute grillen wir im Garten."},{"g":"groß","e":"big; tall","a":"","c":"word","x":"Mein Bruder und ich sind gleich groß."},{"g":"die Größe","e":"the size","a":"die","c":"noun","x":"Haben Sie das auch in Größe 40?"},{"g":"die Großeltern (pl.)","e":"the grandparents","a":"die","c":"noun","x":"Meine Großeltern leben in Japan."},{"g":"die Großmutter","e":"the grandmother","a":"die","c":"noun","x":"Meine Großmutter heißt Eva."},{"g":"der Großvater","e":"the grandfather","a":"der","c":"noun","x":"Mein Großvater ist schon 80."},{"g":"die Gruppe","e":"the group","a":"die","c":"noun","x":"Die erste Gruppe beginnt um 16 Uhr."},{"g":"der Gruß","e":"the greeting","a":"der","c":"noun","x":"Viele Grüße an Ihre Frau."},{"g":"gültig","e":"valid","a":"","c":"word","x":"Der Pass ist nicht mehr gültig."},{"g":"günstig","e":"inexpensive; favourable","a":"","c":"word","x":"Dort gibt es günstige Angebote."},{"g":"gut","e":"good","a":"","c":"word","x":"Das finde ich gut."},{"g":"das Haar","e":"the hair","a":"das","c":"noun","x":"Sie hat lange Haare."},{"g":"haben","e":"to have","a":"","c":"verb","x":"Ich habe ein neues Auto."},{"g":"das Hähnchen","e":"the chicken (to eat)","a":"das","c":"noun","x":"Ein Hähnchen mit Pommes bitte!"},{"g":"die Halbpension","e":"the half board","a":"die","c":"noun","x":"Möchten Sie Vollpension oder Halbpension?"},{"g":"die Halle","e":"the hall","a":"die","c":"noun","x":"Wir treffen uns in Halle B"},{"g":"hallo","e":"hello","a":"","c":"word","x":"Hallo Inge! Wie geht’s?"},{"g":"halten","e":"to hold; stop","a":"","c":"verb","x":"Dieser Zug hält nicht in Rüdesheim."},{"g":"die Haltestelle","e":"the (bus/tram) stop","a":"die","c":"noun","x":"An der nächsten Haltestelle müssen Sie aussteigen."},{"g":"die Hand","e":"the hand","a":"die","c":"noun","x":"Er gibt mir die Hand."},{"g":"das Handy","e":"the mobile phone","a":"das","c":"noun","x":"In der Schule bitte die Handys ausmachen!"},{"g":"das Haus","e":"the house","a":"das","c":"noun","x":"In welchem Haus wohnst du?"},{"g":"die Hausaufgabe","e":"the homework","a":"die","c":"noun","x":"Kannst du mir bei den Hausaufgaben helfen?"},{"g":"die Hausfrau","e":"the housewife","a":"die","c":"noun","x":""},{"g":"der Hausmann","e":"the house husband","a":"der","c":"noun","x":"Die Hausfrau/der Hausmann wäscht, kocht und kauft"},{"g":"die Heimat","e":"the home(land)","a":"die","c":"noun","x":"Ich komme aus der Schweiz. Das ist meine Heimat."},{"g":"heiraten","e":"to marry","a":"","c":"verb","x":"Meine Schwester heiratet einen Japaner."},{"g":"heißen","e":"to be called","a":"","c":"verb","x":"Ich heiße Charlotte Meier."},{"g":"helfen","e":"to help","a":"","c":"verb","x":"Können Sie mir helfen, bitte?"},{"g":"hell","e":"bright; light","a":"","c":"word","x":"Im Sommer ist es bis 21 Uhr hell."},{"g":"der Herd","e":"the stove; cooker","a":"der","c":"noun","x":"In der neuen Küche fehlt noch der Herd."},{"g":"der Herr","e":"the gentleman; Mr","a":"der","c":"noun","x":"Guten Tag, Herr Sommer!"},{"g":"herzlich","e":"warm; cordial","a":"","c":"word","x":"Herzlichen Glückwunsch!"},{"g":"heute","e":"today","a":"","c":"word","x":"Heute ist ein schöner Tag."},{"g":"hier","e":"here","a":"","c":"word","x":"Hier ist 06131-553221, Pamela Linke."},{"g":"die Hilfe","e":"the help","a":"die","c":"noun","x":"Hilfe! Bitte helfen Sie mir!"},{"g":"hinten","e":"at the back; behind","a":"","c":"verb","x":"Die Tür zum Aussteigen ist hinten."},{"g":"das Hobby","e":"the hobby","a":"das","c":"noun","x":"Meine Hobbys sind Wandern und Schwimmen."},{"g":"hoch","e":"high","a":"","c":"word","x":"Der Mount Everest ist 8.880 Meter hoch."},{"g":"die Hochzeit","e":"the wedding","a":"die","c":"noun","x":"Zur dieser Hochzeit kommen mehr als fünfzig Gäste."},{"g":"holen","e":"to fetch; get","a":"","c":"verb","x":"Ich hole zwei Flaschen Wasser aus der Küche."},{"g":"hören","e":"to hear; listen","a":"","c":"verb","x":"Hör mal! Was ist das?"},{"g":"das Hotel","e":"the hotel","a":"das","c":"noun","x":"Im Urlaub sind wir in einem Hotel am Meer."},{"g":"der Hund","e":"the dog","a":"der","c":"noun","x":"Der Hund ist noch jung."},{"g":"der Hunger","e":"the hunger","a":"der","c":"noun","x":"Ich habe Hunger! Wann ist das Essen fertig?"},{"g":"ich","e":"I","a":"","c":"word","x":"Ich heiße Veronika."},{"g":"ihr/ihm/ihn","e":"her/him (object)","a":"","c":"verb","x":"Gib ihr/ihm bitte das Buch."},{"g":"immer","e":"always","a":"","c":"word","x":"Frau Bast kommt immer zu spät."},{"g":"in","e":"in","a":"","c":"verb","x":"Ich wohne in Wiesbaden."},{"g":"die Information","e":"the information","a":"die","c":"noun","x":"Wenn Sie Fragen haben, gehen Sie zur Information."},{"g":"international","e":"international","a":"","c":"word","x":"Unser Deutschkurs ist international: Silvana kommt"},{"g":"das Internet","e":"the internet","a":"das","c":"noun","x":"Das findest du im Internet."},{"g":"ja","e":"yes","a":"","c":"word","x":"Sind Sie Herr Watanabe? – Ja."},{"g":"die Jacke","e":"the jacket","a":"die","c":"noun","x":"Zieh dir eine Jacke an. Es ist kalt."},{"g":"jed-","e":"each; every","a":"","c":"word","x":"Blumen kannst du in jedem Bahnhof kaufen."},{"g":"jetzt","e":"now","a":"","c":"word","x":"Jetzt machen wir eine Pause."},{"g":"der Job","e":"the job","a":"der","c":"noun","x":"Jenny hat einen neuen Job bei der Post."},{"g":"der Jugendliche","e":"the teenager; young person","a":"der","c":"noun","x":"Viele Jugendliche kaufen gern ein."},{"g":"jung","e":"young","a":"","c":"word","x":"Claudia ist 21. – Was? Noch so jung?"},{"g":"der Junge","e":"the boy","a":"der","c":"noun","x":"Ich habe zwei Kinder. Einen Jungen und ein Mädchen."},{"g":"der Kaffee","e":"the coffee","a":"der","c":"noun","x":"Zum Frühstück trinke ich immer Kaffee."},{"g":"kaputt","e":"broken","a":"","c":"word","x":"Das Glas war teuer. Es geht sehr leicht kaputt."},{"g":"die Karte","e":"the card; ticket; map","a":"die","c":"noun","x":"Ich schreibe meinen Bekannten eine Karte aus dem"},{"g":"(Kredit)-Karte","e":"the (credit) card","a":"","c":"word","x":"Kann ich auch mit Karte (be-) zahlen?"},{"g":"die Kartoffel","e":"the potato","a":"die","c":"noun","x":"Für Pommes frites braucht man Kartoffeln."},{"g":"die Kasse","e":"the cash register; checkout","a":"die","c":"noun","x":"Zahlen Sie bitte an der Kasse."},{"g":"kaufen","e":"to buy","a":"","c":"verb","x":"Tim kauft sich ein neues Auto."},{"g":"kein","e":"no; not a/any","a":"","c":"verb","x":"Es gibt keine Eintrittskarten mehr."},{"g":"kennen","e":"to know (be acquainted with)","a":"","c":"verb","x":"Kennen Sie diese Frau? – Nein, leider nicht."},{"g":"kennenlernen","e":"to get to know; meet","a":"","c":"verb","x":"Wir sind neu hier. Wir möchten Sie kennenlernen."},{"g":"das Kind","e":"the child","a":"das","c":"noun","x":"Wie viele Kinder haben Sie?"},{"g":"der Kindergarten","e":"the kindergarten; nursery","a":"der","c":"noun","x":"Die kleine Laura geht schon in den Kindergarten."},{"g":"das Kino","e":"the cinema","a":"das","c":"noun","x":"Wir sehen heute Abend im Kino einen schönen Film."},{"g":"der Kiosk","e":"the kiosk; newsstand","a":"der","c":"noun","x":"Am Kiosk bekommen Sie Getränke, Zigaretten und"},{"g":"klar","e":"clear; of course","a":"","c":"word","x":"Kommst du mit? – Klar!"},{"g":"die Klasse","e":"the class","a":"die","c":"noun","x":"In unserer Klasse sind fünfundzwanzig Schüler."},{"g":"die Kleidung","e":"the clothing","a":"die","c":"noun","x":"Wo finde ich Kleidung? – Jacken im ersten, Jeans im"},{"g":"klein","e":"small","a":"","c":"verb","x":"Eltville ist eine kleine Stadt am Rhein."},{"g":"kochen","e":"to cook","a":"","c":"verb","x":"Herr Georgi kann gut kochen."},{"g":"der Koffer","e":"the suitcase","a":"der","c":"noun","x":"Ist das Ihr Koffer?"},{"g":"der Kollege","e":"the colleague","a":"der","c":"noun","x":"Wie heißt die neue Kollegin?"},{"g":"kommen","e":"to come","a":"","c":"verb","x":"Woher kommen Sie? – Aus Frankreich."},{"g":"können","e":"to be able to; can","a":"","c":"verb","x":"Ich kann Deutsch und Russisch."},{"g":"das Konto","e":"the (bank) account","a":"das","c":"noun","x":"Das Geld überweisen wir am ersten März auf Ihr Konto."},{"g":"der Kopf","e":"the head","a":"der","c":"noun","x":"Mein Kopf tut weh!"},{"g":"kosten","e":"to cost","a":"","c":"verb","x":"Wie viel kostet das? – 10 Euro."},{"g":"krank","e":"sick; ill","a":"","c":"word","x":"Ich kann heute nicht zur Arbeit kommen, ich bin krank"},{"g":"kriegen","e":"to get (colloquial)","a":"","c":"verb","x":"Ich kriege 15 Euro in der Stunde für meine Arbeit."},{"g":"die Küche","e":"the kitchen","a":"die","c":"noun","x":"Der neue Herd kommt in die Küche."},{"g":"der Kuchen","e":"the cake","a":"der","c":"noun","x":"Ich nehme ein Stück Kuchen."},{"g":"der Kugelschreiber","e":"the ballpoint pen","a":"der","c":"noun","x":"Hast du einen Kugelschreiber für mich?"},{"g":"der Kühlschrank","e":"the refrigerator","a":"der","c":"noun","x":"Haben wir noch Milch? – Ja, im Kühlschrank."},{"g":"kulturell","e":"cultural","a":"","c":"word","x":"Ich bin kulturell interessiert. Ich gehe oft ins Museum."},{"g":"sich kümmern","e":"to take care (of)","a":"","c":"word","x":"Jede Mutter kümmert sich um ihre kleinen Kinder."},{"g":"der Kunde","e":"the customer","a":"der","c":"noun","x":"Einen Moment, bitte. Ich habe eine Kundin."},{"g":"der Kurs","e":"the course","a":"der","c":"noun","x":"Der Deutschkurs geht bis zum Sommer."},{"g":"kurz","e":"short","a":"","c":"word","x":"Ricardo hat kurzes Haar."},{"g":"lachen","e":"to laugh","a":"","c":"verb","x":"Die Kinder lachen viel."},{"g":"der Laden","e":"the shop; store","a":"der","c":"noun","x":"Im Buchladen können Sie Bücher kaufen."},{"g":"das Land","e":"the country; countryside","a":"das","c":"noun","x":"Italien ist ein schönes Land."},{"g":"lang","e":"long","a":"","c":"word","x":"Die Jeans ist zu lang."},{"g":"lange","e":"(for) a long time","a":"","c":"word","x":"Wie lange fährt der Zug von Hamburg nach Berlin?"},{"g":"langsam","e":"slow(ly)","a":"","c":"word","x":"Könnten Sie bitte etwas langsamer sprechen?"},{"g":"laufen","e":"to run; walk","a":"","c":"verb","x":"Ich möchte nicht Auto fahren, ich möchte laufen."},{"g":"laut","e":"loud","a":"","c":"word","x":"Nicht so laut! Das Baby schläft."},{"g":"leben","e":"to live","a":"","c":"verb","x":"Sie lebt bei ihrer Schwester."},{"g":"das Leben","e":"the life","a":"das","c":"noun","x":"Das Leben in diesem Land ist teuer."},{"g":"die Lebensmittel (pl.)","e":"the groceries; food","a":"die","c":"noun","x":"Lebensmittel bekommen Sie im Supermarkt."},{"g":"ledig","e":"single (unmarried)","a":"","c":"word","x":"Sind Sie verheiratet? – Nein. Ledig."},{"g":"legen","e":"to lay; put down","a":"","c":"verb","x":"Legen Sie das Buch auf den Tisch."},{"g":"der Lehrer","e":"the teacher","a":"der","c":"noun","x":"Unsere Deutschlehrerin heißt Frau Müller."},{"g":"leicht","e":"easy; light","a":"","c":"word","x":"Der Koffer ist leicht."},{"g":"leider","e":"unfortunately","a":"","c":"word","x":"Leider kann ich nicht kommen. Ich muss zum Arzt."},{"g":"leise","e":"quiet(ly); soft","a":"","c":"word","x":"Seid leise. Die anderen schlafen schon."},{"g":"lernen","e":"to learn","a":"","c":"verb","x":"Wie lange lernen Sie schon Deutsch?"},{"g":"lesen","e":"to read","a":"","c":"verb","x":"Ich lese ein Buch von García Márquez."},{"g":"letzt-","e":"last","a":"","c":"word","x":"Morgen ist der letzte Kurstag."},{"g":"die Leute (pl.)","e":"the people","a":"die","c":"noun","x":"In der Disko sind viele Leute."},{"g":"das Licht","e":"the light","a":"das","c":"noun","x":"Wo macht man hier das Licht an?"},{"g":"lieb-","e":"dear; kind","a":"","c":"word","x":"Liebe Susanne, lieber Hans,"},{"g":"lieben","e":"to love","a":"","c":"verb","x":"Ich liebe dich!"},{"g":"lieber","e":"rather; preferably","a":"","c":"word","x":"Sie fährt lieber mit der Bahn."},{"g":"Lieblings-","e":"favourite (prefix)","a":"","c":"word","x":"Mein Lieblingsfilm ist „Schwarze Augen“."},{"g":"das Lied","e":"the song","a":"das","c":"noun","x":"Welches ist dein Lieblingslied?"},{"g":"liegen","e":"to lie; be located","a":"","c":"verb","x":"Um neun Uhr liegt Judith noch im Bett."},{"g":"links","e":"(on the) left","a":"","c":"word","x":"Gehen Sie die nächste Straße links."},{"g":"der Lkw","e":"the truck; lorry","a":"der","c":"noun","x":"Dieser Lastkraftwagen ist sehr groß."},{"g":"das Lokal","e":"the pub; restaurant","a":"das","c":"noun","x":"In unserer Straße gibt es ein neues Lokal."},{"g":"die Lösung","e":"the solution","a":"die","c":"noun","x":"Die Lösung ist ganz einfach."},{"g":"lustig","e":"funny; cheerful","a":"","c":"word","x":"Frau Mertens ist lustig. Sie lacht immer."},{"g":"machen","e":"to do; make","a":"","c":"verb","x":"Was machst du heute Abend?"},{"g":"das Mädchen","e":"the girl","a":"das","c":"noun","x":"Familie Kurz bekommt ein Baby. – Junge oder Mädchen?"},{"g":"man","e":"one; people (impersonal)","a":"","c":"verb","x":"Hier darf man nicht rauchen."},{"g":"der Mann","e":"the man; husband","a":"der","c":"noun","x":"Mein Mann arbeitet bei der Polizei."},{"g":"männlich","e":"male","a":"","c":"word","x":"Kreuzen Sie bitte an: „weiblich“ oder „männlich“."},{"g":"die Maschine","e":"the machine","a":"die","c":"noun","x":"Die Waschmaschine ist günstig."},{"g":"das Meer","e":"the sea","a":"das","c":"noun","x":"Wir machen Urlaub am Meer."},{"g":"mehr","e":"more","a":"","c":"word","x":"Dieses Auto kostet 1.000 Euro mehr als das andere."},{"g":"mein","e":"my","a":"","c":"verb","x":"Mein Vater ist Arzt."},{"g":"meist-","e":"most","a":"","c":"word","x":"Die meisten Norddeutschen sind sehr groß."},{"g":"der Mensch","e":"the person; human","a":"der","c":"noun","x":"Die Menschen sind hier anders als bei uns."},{"g":"mieten","e":"to rent","a":"","c":"verb","x":"Ich möchte ein Auto mieten."},{"g":"die Miete","e":"the rent","a":"die","c":"noun","x":"Die Miete für diese Wohnung ist 600 Euro."},{"g":"die Milch","e":"the milk","a":"die","c":"noun","x":"Die Milch steht im Kühlschrank."},{"g":"mit","e":"with","a":"","c":"word","x":"Trinken Sie den Kaffee mit Milch?"},{"g":"mitbringen","e":"to bring along","a":"","c":"verb","x":"Ich gehe einkaufen. Soll ich dir was mitbringen?"},{"g":"mitkommen","e":"to come along","a":"","c":"verb","x":"Ich gehe ins Kino. Kommst du mit?"},{"g":"mitmachen","e":"to join in; participate","a":"","c":"verb","x":"Warum macht ihr nicht mit?"},{"g":"mitnehmen","e":"to take along","a":"","c":"verb","x":"Nehmen wir meine Schwester ins Kino mit?"},{"g":"die Mitte","e":"the middle; centre","a":"die","c":"noun","x":"Der Lehrer steht in der Mitte des Klassenzimmers."},{"g":"die Möbel (pl.)","e":"the furniture","a":"die","c":"noun","x":"Sind die Möbel neu?"},{"g":"möchten","e":"would like","a":"","c":"verb","x":"Was möchten Sie trinken?"},{"g":"mögen","e":"to like","a":"","c":"verb","x":"Magst du Kaffee oder Tee?"},{"g":"möglich","e":"possible","a":"","c":"word","x":"Mit dieser Fahrkarte ist die Fahrt ab 9 Uhr möglich."},{"g":"der Moment","e":"the moment","a":"der","c":"noun","x":"Moment mal bitte!"},{"g":"morgen","e":"tomorrow","a":"","c":"verb","x":"Morgen beginnt die Schule um 10 Uhr."},{"g":"müde","e":"tired","a":"","c":"word","x":"Ich bin müde. Ich gehe schlafen."},{"g":"der Mund","e":"the mouth","a":"der","c":"noun","x":"Öffnen Sie den Mund."},{"g":"müssen","e":"to have to; must","a":"","c":"verb","x":"Ich muss jeden Tag von 8 Uhr bis 18 Uhr arbeiten."},{"g":"die Mutter","e":"the mother","a":"die","c":"noun","x":"Frau Berghäuser ist die Mutter von Michaela."},{"g":"nach","e":"after; to","a":"","c":"word","x":"Ich gehe jetzt nach Hause."},{"g":"nächst-","e":"next; nearest","a":"","c":"word","x":"Sehen wir uns nächste Woche?"},{"g":"der Name","e":"the name","a":"der","c":"noun","x":"Mein Name ist Thomas Schmidt."},{"g":"nehmen","e":"to take","a":"","c":"verb","x":"Heute gibt es Hähnchen. Das nehme ich."},{"g":"nein","e":"no","a":"","c":"verb","x":"Fährst du auch nach München? – Nein, ich habe keine"},{"g":"neu","e":"new","a":"","c":"word","x":"Ich bin der neue Kollege."},{"g":"nicht","e":"not","a":"","c":"word","x":"Das stimmt nicht."},{"g":"nichts","e":"nothing","a":"","c":"word","x":"Das macht nichts."},{"g":"nie","e":"never","a":"","c":"word","x":"Er kommt nie pünktlich."},{"g":"noch","e":"still; yet","a":"","c":"word","x":"Vielleicht kommt er noch."},{"g":"normal","e":"normal","a":"","c":"word","x":"75 kg. Sein Gewicht ist normal."},{"g":"die Nummer","e":"the number","a":"die","c":"noun","x":"Sie haben Zimmer Nummer zwölf."},{"g":"nur","e":"only","a":"","c":"word","x":"Ich möchte nur ein Glas Wasser."},{"g":"oben","e":"up; above; upstairs","a":"","c":"verb","x":"Ich wohne oben."},{"g":"das Obst","e":"the fruit","a":"das","c":"noun","x":"Im Sommer ist das Obst billig."},{"g":"oder","e":"or","a":"","c":"word","x":"Wann können Sie kommen – heute oder morgen?"},{"g":"öffnen","e":"to open","a":"","c":"verb","x":"Ich öffne die Tür."},{"g":"geöffnet","e":"open(ed)","a":"","c":"word","x":"Der Laden ist samstags bis 16.00 Uhr geöffnet."},{"g":"oft","e":"often","a":"","c":"word","x":"Petra treffe ich oft."},{"g":"ohne","e":"without","a":"","c":"word","x":"Ohne Geld kann er nichts kaufen."},{"g":"das Öl","e":"the oil","a":"das","c":"noun","x":"Den Salat machen wir ohne Öl."},{"g":"die Oma","e":"the grandma","a":"die","c":"noun","x":"Meine Oma ist schon tot."},{"g":"der Opa","e":"the grandpa","a":"der","c":"noun","x":"Mein Opa heißt Hans."},{"g":"die Ordnung","e":"the order","a":"die","c":"noun","x":"Das ist in Ordnung."},{"g":"der Ort","e":"the place; town","a":"der","c":"noun","x":"Der Ort liegt am Meer."},{"g":"das Papier","e":"the paper","a":"das","c":"noun","x":"Hier sind Papier und Bleistift."},{"g":"die Papiere (pl.)","e":"the documents; papers","a":"die","c":"noun","x":"Haben Sie Ihre Papiere dabei?"},{"g":"der Partner","e":"the partner","a":"der","c":"noun","x":""},{"g":"die Partnerin","e":"the partner (female)","a":"die","c":"noun","x":"Sie ist meine Partnerin."},{"g":"die Party","e":"the party","a":"die","c":"noun","x":"Heute Abend machen wir eine Party."},{"g":"der Pass","e":"the passport","a":"der","c":"noun","x":"Im Hotel brauchst du deinen Pass."},{"g":"die Pause","e":"the break; pause","a":"die","c":"noun","x":"Von 12.00 bis 12.30 Uhr haben wir Mittagspause."},{"g":"der Plan","e":"the plan; map","a":"der","c":"noun","x":"Ich kaufe mir einen Stadtplan."},{"g":"der Platz","e":"the square; seat; space","a":"der","c":"noun","x":"Tut mir leid, der Platz ist besetzt."},{"g":"die Polizei","e":"the police","a":"die","c":"noun","x":"Holen Sie die Polizei!"},{"g":"die Pommes frites","e":"the French fries; chips","a":"die","c":"noun","x":"(pl.) Die Kinder essen Hähnchen mit Pommes frites."},{"g":"die Post","e":"the post office; mail","a":"die","c":"noun","x":"Wo ist die Post, bitte?"},{"g":"die Postleitzahl","e":"the postal code; zip code","a":"die","c":"noun","x":"Wie ist Ihre Postleitzahl?"},{"g":"das Praktikum","e":"the internship","a":"das","c":"noun","x":"Ich mache ein Praktikum bei Siemens."},{"g":"die Praxis","e":"the (doctor's) practice","a":"die","c":"noun","x":"Die Praxis ist ab acht Uhr geöffnet."},{"g":"der Preis","e":"the price; prize","a":"der","c":"noun","x":"Die Preise sind hoch."},{"g":"das Problem","e":"the problem","a":"das","c":"noun","x":"Mein Problem ist die Sprache."},{"g":"der Prospekt","e":"the brochure","a":"der","c":"noun","x":"Bitte schicken Sie mir einen Prospekt von Ihrem Hotel."},{"g":"die Prüfung","e":"the exam","a":"die","c":"noun","x":"Die Prüfung ist am Montag um 8.00 Uhr."},{"g":"pünktlich","e":"punctual; on time","a":"","c":"word","x":"Der Bus fährt pünktlich um acht Uhr."},{"g":"Rad fahren","e":"to ride a bike","a":"","c":"word","x":"Das Kind kann schon Rad fahren."},{"g":"rauchen","e":"to smoke","a":"","c":"verb","x":"Ich rauche nicht."},{"g":"der Raum","e":"the room; space","a":"der","c":"noun","x":"Der Unterricht ist in Raum 332."},{"g":"die Rechnung","e":"the bill; invoice","a":"die","c":"noun","x":"Die Rechnung, bitte."},{"g":"rechts","e":"(on the) right","a":"","c":"word","x":"Die Schillerstraße ist hier rechts."},{"g":"regnen","e":"to rain","a":"","c":"verb","x":"Heute regnet es."},{"g":"der Regen","e":"the rain","a":"der","c":"noun","x":"Bei diesem Regen gehe ich nicht raus."},{"g":"der Reis","e":"the rice","a":"der","c":"noun","x":"Ich esse gern Reis."},{"g":"reisen","e":"to travel","a":"","c":"verb","x":"Ich reise gern."},{"g":"die Reise","e":"the trip; journey","a":"die","c":"noun","x":"Wir machen eine Reise nach Österreich."},{"g":"das Reisebüro","e":"the travel agency","a":"das","c":"noun","x":"Mein Mann arbeitet im Reisebüro."},{"g":"der Reiseführer","e":"the guidebook; tour guide","a":"der","c":"noun","x":"Ich kaufe mir einen Reiseführer von Berlin."},{"g":"reparieren","e":"to repair","a":"","c":"verb","x":"Er hat das Fahrrad repariert."},{"g":"die Reparatur","e":"the repair","a":"die","c":"noun","x":"Die Reparatur ist sehr teuer."},{"g":"das Restaurant","e":"the restaurant","a":"das","c":"noun","x":"Wir essen heute in einem Restaurant."},{"g":"die Rezeption","e":"the reception","a":"die","c":"noun","x":"Fragen Sie bitte im Hotel an der Rezeption."},{"g":"richtig","e":"correct; right","a":"","c":"word","x":"Habe ich das richtig verstanden?"},{"g":"riechen","e":"to smell","a":"","c":"verb","x":"Dieser Wein riecht gut."},{"g":"ruhig","e":"quiet; calm","a":"","c":"word","x":"Ich möchte ein ruhiges Zimmer."},{"g":"der Saft","e":"the juice","a":"der","c":"noun","x":"Möchtest du einen Apfelsaft?"},{"g":"sagen","e":"to say","a":"","c":"verb","x":"Sag mal, wie geht es dir denn?"},{"g":"der Salat","e":"the salad; lettuce","a":"der","c":"noun","x":"Wie schmeckt dir der Salat?"},{"g":"das Salz","e":"the salt","a":"das","c":"noun","x":"Herr Ober, kann ich bitte Salz haben?"},{"g":"Satz","e":"the sentence","a":"","c":"word","x":"Dieser Satz ist sehr einfach."},{"g":"die S-Bahn","e":"the (urban) commuter train","a":"die","c":"noun","x":"Ich nehme lieber die S-Bahn."},{"g":"der Schalter","e":"the counter; switch","a":"der","c":"noun","x":"Gehen Sie bitte zum Schalter drei!"},{"g":"scheinen","e":"to shine; seem","a":"","c":"verb","x":"Die Sonne scheint."},{"g":"schicken","e":"to send","a":"","c":"verb","x":"Bitte schicken Sie mir eine E-Mail."},{"g":"das Schild","e":"the sign","a":"das","c":"noun","x":"Haben Sie nicht das Schild gesehen?"},{"g":"der Schinken","e":"the ham","a":"der","c":"noun","x":"Ich möchte gern ein Schinkenbrot."},{"g":"schlafen","e":"to sleep","a":"","c":"verb","x":"Ich schlafe meistens acht Stunden."},{"g":"schlecht","e":"bad","a":"","c":"word","x":"Mir ist schlecht!"},{"g":"schließen","e":"to close","a":"","c":"verb","x":"Bitte, schließen Sie die Tür."},{"g":"geschlossen","e":"closed","a":"","c":"verb","x":"Die Bank hat am Samstag geschlossen."},{"g":"der Schluss","e":"the end; conclusion","a":"der","c":"noun","x":"Ich muss jetzt Schluss machen."},{"g":"der Schlüssel","e":"the key","a":"der","c":"noun","x":"Ich gebe Ihnen noch den Zimmerschlüssel."},{"g":"schmecken","e":"to taste","a":"","c":"verb","x":"Schmeckt das gut?"},{"g":"schnell","e":"fast; quick","a":"","c":"word","x":"Er fährt schnell."},{"g":"schon","e":"already","a":"","c":"verb","x":"Ist das Essen schon fertig?"},{"g":"schön","e":"beautiful; nice","a":"","c":"verb","x":"Schönen Urlaub!"},{"g":"der Schrank","e":"the cupboard; wardrobe","a":"der","c":"noun","x":"Die Gläser stehen im Schrank."},{"g":"schreiben","e":"to write","a":"","c":"verb","x":"Er schreibt jeden Tag fünfzig E-Mails."},{"g":"der Schuh","e":"the shoe","a":"der","c":"noun","x":"Zieh die Schuhe aus!"},{"g":"die Schule","e":"the school","a":"die","c":"noun","x":"Meine Tochter geht schon in die Schule."},{"g":"der Schüler","e":"the pupil; student","a":"der","c":"noun","x":"In meinem Kurs sind acht Schülerinnen und fünf"},{"g":"schwer","e":"heavy; difficult","a":"","c":"word","x":"Ist Ihr Gepäck sehr schwer?"},{"g":"die Schwester","e":"the sister","a":"die","c":"noun","x":"Meine Schwester kommt am Dienstag."},{"g":"schwimmen","e":"to swim","a":"","c":"verb","x":"Ich schwimme jeden Tag einen Kilometer."},{"g":"das Schwimmbad","e":"the swimming pool","a":"das","c":"noun","x":"Kommst du mit ins Schwimmbad?"},{"g":"der See","e":"the lake","a":"der","c":"noun","x":"Komm, wir fahren zum Starnberger See."},{"g":"sehen","e":"to see","a":"","c":"verb","x":"Ich kann dich nicht sehen."},{"g":"die Sehenswürdigkeit","e":"the sight; attraction","a":"die","c":"noun","x":"-en"},{"g":"sehr","e":"very","a":"","c":"word","x":"Danke sehr!"},{"g":"sein","e":"to be; his","a":"","c":"verb","x":"Herr Müller ist in seinem Zimmer."},{"g":"an sein","e":"to be on","a":"","c":"word","x":"Das Licht ist noch an."},{"g":"auf sein","e":"to be open","a":"","c":"word","x":"Das Fenster ist noch auf."},{"g":"weg sein","e":"to be gone","a":"","c":"word","x":"Herr Meier ist schon weg."},{"g":"zu sein","e":"to be closed","a":"","c":"word","x":"Die Tür ist zu."},{"g":"seit","e":"since; for","a":"","c":"word","x":"Ich wohne seit drei Jahren in Köln."},{"g":"selbstständig","e":"self-employed; independent","a":"","c":"word","x":"Er ist selbstständig."},{"g":"sich","e":"oneself","a":"","c":"word","x":"Sie müssen sich erst anmelden."},{"g":"sie","e":"she; they","a":"","c":"word","x":"Wie heißt sie?"},{"g":"Sie","e":"you (formal)","a":"","c":"word","x":"Wie heißen Sie, bitte?"},{"g":"sitzen","e":"to sit","a":"","c":"verb","x":"Wo sitzen Sie?"},{"g":"so","e":"so; like this","a":"","c":"word","x":"Sie müssen das so machen!"},{"g":"das Sofa","e":"the sofa","a":"das","c":"noun","x":"Das Sofa ist neu."},{"g":"sofort","e":"immediately","a":"","c":"word","x":"Bitte antworten Sie sofort."},{"g":"der Sohn","e":"the son","a":"der","c":"noun","x":"Das ist Hans, mein Sohn."},{"g":"sollen","e":"to be supposed to; should","a":"","c":"verb","x":"Soll ich kommen?"},{"g":"die Sonne","e":"the sun","a":"die","c":"noun","x":"Die Sonne scheint."},{"g":"spät","e":"late","a":"","c":"word","x":"Es ist schon spät, ich muss gehen."},{"g":"später","e":"later","a":"","c":"word","x":"Das können wir später machen."},{"g":"die Speisekarte","e":"the menu","a":"die","c":"noun","x":"Bringen Sie mir die Speisekarte, bitte."},{"g":"spielen","e":"to play","a":"","c":"verb","x":"Die Kinder spielen draußen."},{"g":"der Sport","e":"the sport","a":"der","c":"noun","x":"Ich mache viel Sport."},{"g":"die Sprache","e":"the language","a":"die","c":"noun","x":"Welche Sprachen sprichst du?"},{"g":"sprechen","e":"to speak","a":"","c":"verb","x":"Kann ich (mit) Herrn Klein sprechen?"},{"g":"die Stadt","e":"the city; town","a":"die","c":"noun","x":"Heidelberg ist eine alte Stadt."},{"g":"stehen","e":"to stand","a":"","c":"verb","x":"Ich glaube es nicht, aber es steht in der Zeitung."},{"g":"die Stelle","e":"the place; position; job","a":"die","c":"noun","x":"Ich habe eine neue Stelle."},{"g":"stellen","e":"to put; place","a":"","c":"verb","x":"Stell die Tasche rechts in die Ecke!"},{"g":"der Stock","e":"the floor; storey","a":"der","c":"noun","x":"Unsere Wohnung liegt im ersten Stock."},{"g":"die Straße","e":"the street","a":"die","c":"noun","x":"In welcher Straße wohnen Sie?"},{"g":"die Straßenbahn","e":"the tram; streetcar","a":"die","c":"noun","x":"Wo fährt die Straßenbahn ab?"},{"g":"studieren","e":"to study (at university)","a":"","c":"verb","x":"Ich studiere in Mainz."},{"g":"das Studium","e":"the (university) studies","a":"das","c":"noun","x":"Das Studium beginnt im Oktober."},{"g":"der Student","e":"the student","a":"der","c":"noun","x":"Ich bin Studentin."},{"g":"die Stunde","e":"the hour; lesson","a":"die","c":"noun","x":"Ich bin in einer Stunde zurück."},{"g":"suchen","e":"to look for; search","a":"","c":"verb","x":"Suchst du etwas?"},{"g":"tanzen","e":"to dance","a":"","c":"verb","x":"Tanzen Sie gern?"},{"g":"die Tasche","e":"the bag; pocket","a":"die","c":"noun","x":"Ich habe die Schlüssel in der Tasche."},{"g":"das Taxi","e":"the taxi","a":"das","c":"noun","x":"Es gibt heute keinen Bus mehr. Er fährt mit dem Taxi."},{"g":"der Tee","e":"the tea","a":"der","c":"noun","x":"Ich trinke morgens immer Tee."},{"g":"der Teil","e":"the part","a":"der","c":"noun","x":"Lies bitte auch den zweiten Teil."},{"g":"telefonieren","e":"to make a phone call","a":"","c":"verb","x":"Darf ich mal telefonieren?"},{"g":"das Telefon","e":"the telephone","a":"das","c":"noun","x":"Haben Sie Telefon?"},{"g":"der Termin","e":"the appointment","a":"der","c":"noun","x":"Am besten machen wir sofort einen Termin."},{"g":"der Test","e":"the test","a":"der","c":"noun","x":"Der Test war einfach."},{"g":"teuer","e":"expensive","a":"","c":"word","x":"Das ist mir zu teuer."},{"g":"der Text","e":"the text","a":"der","c":"noun","x":"Lesen Sie bitte diesen Text."},{"g":"das Thema","e":"the topic; theme","a":"das","c":"noun","x":"Wir sprechen heute über das Thema „Essen und"},{"g":"das Ticket","e":"the ticket","a":"das","c":"noun","x":"Wie viel kostet das Ticket?"},{"g":"der Tisch","e":"the table","a":"der","c":"noun","x":"Die Fotos liegen auf dem Tisch."},{"g":"die Tochter","e":"the daughter","a":"die","c":"noun","x":"Das ist meine Tochter Katharina."},{"g":"die Toilette","e":"the toilet","a":"die","c":"noun","x":"Wo ist die Toilette, bitte?"},{"g":"die Tomate","e":"the tomato","a":"die","c":"noun","x":"Die Tomate ist noch grün."},{"g":"tot","e":"dead","a":"","c":"word","x":"Sein Vater ist schon lange tot."},{"g":"(sich) treffen","e":"to meet","a":"","c":"word","x":"Ich treffe in der Stadt einen Kollegen."},{"g":"die Treppe","e":"the stairs","a":"die","c":"noun","x":"Die Toilette? Die Treppe hoch und dann links."},{"g":"trinken","e":"to drink","a":"","c":"verb","x":"Möchtest du etwas trinken?"},{"g":"tschüss","e":"bye","a":"","c":"word","x":"Junge Leute sagen meistens „tschüss!“ und nicht"},{"g":"tun","e":"to do","a":"","c":"verb","x":"Ich habe noch etwas zu tun."},{"g":"über","e":"over; about","a":"","c":"word","x":"Gehen Sie hier über die Straße."},{"g":"übernachten","e":"to stay overnight","a":"","c":"verb","x":"Du kannst bei mir übernachten."},{"g":"überweisen","e":"to transfer (money)","a":"","c":"verb","x":"Sie können das Geld auch überweisen."},{"g":"die Uhr","e":"the clock; watch","a":"die","c":"noun","x":"Es ist vier Uhr."},{"g":"um","e":"at; around","a":"","c":"word","x":"Er kommt um sieben Uhr."},{"g":"umziehen","e":"to move (house)","a":"","c":"verb","x":"Nächsten Monat ziehen wir um."},{"g":"und","e":"and","a":"","c":"word","x":"Peter und Helmut sind meine Söhne."},{"g":"unser-","e":"our","a":"","c":"word","x":"Das ist unsere Lehrerin."},{"g":"unten","e":"down; below; downstairs","a":"","c":"verb","x":"Er wohnt ganz unten im Haus."},{"g":"unter","e":"under; among","a":"","c":"word","x":"Unter uns wohnt eine Familie mit drei Kindern."},{"g":"der Unterricht","e":"the lesson; class","a":"der","c":"noun","x":"Wir haben Unterricht von 8.00 bis 12.00 Uhr."},{"g":"unterschreiben","e":"to sign","a":"","c":"verb","x":"Wo muss ich unterschreiben?"},{"g":"die Unterschrift","e":"the signature","a":"die","c":"noun","x":"Hier fehlt noch Ihre Unterschrift."},{"g":"der Urlaub","e":"the holiday; vacation","a":"der","c":"noun","x":"Ich nehme im September Urlaub."},{"g":"der Vater","e":"the father","a":"der","c":"noun","x":"Mein Vater ist Arbeiter."},{"g":"verboten","e":"forbidden","a":"","c":"verb","x":"Hier ist Rauchen verboten."},{"g":"verdienen","e":"to earn","a":"","c":"verb","x":"Ich verdiene 1.500 Euro im Monat."},{"g":"der Verein","e":"the club; association","a":"der","c":"noun","x":"Es gibt einen neuen Sportverein in der Stadt."},{"g":"verheiratet","e":"married","a":"","c":"word","x":"Ich bin verheiratet und habe drei Kinder."},{"g":"verkaufen","e":"to sell","a":"","c":"verb","x":"Er verkauft sein altes Auto."},{"g":"der Verkäufer","e":"the salesperson","a":"der","c":"noun","x":"Meine Mutter ist Verkäuferin im Kaufhaus."},{"g":"vermieten","e":"to rent out","a":"","c":"verb","x":"Die Wohnung ist schon vermietet."},{"g":"der Vermieter","e":"the landlord","a":"der","c":"noun","x":"Unser Vermieter heißt Huber. Er wohnt auch hier."},{"g":"verstehen","e":"to understand","a":"","c":"verb","x":"Können Sie mich verstehen?"},{"g":"der Verwandte","e":"the relative","a":"der","c":"noun","x":"Peter besucht seine Verwandten in Polen."},{"g":"viel","e":"much; a lot","a":"","c":"word","x":"Hier regnet es viel."},{"g":"vielleicht","e":"maybe; perhaps","a":"","c":"word","x":"Ich komme vielleicht mit dem Bus."},{"g":"von","e":"from; of","a":"","c":"verb","x":"Das Auto von Felix ist kaputt."},{"g":"vor","e":"before; in front of","a":"","c":"word","x":"Der Termin war vor einer Stunde."},{"g":"der Vorname","e":"the first name","a":"der","c":"noun","x":"Ich heiße Müller, mein Vorname ist Eva."},{"g":"die Vorsicht","e":"the caution","a":"die","c":"noun","x":"Vorsicht! Da kommt ein Auto."},{"g":"(sich) vorstellen","e":"to introduce; imagine","a":"","c":"word","x":"Wir wollen uns kennenlernen. Können Sie sich bitte"},{"g":"die Vorwahl","e":"the area code","a":"die","c":"noun","x":"Wie ist die Vorwahl von München?"},{"g":"wandern","e":"to hike","a":"","c":"verb","x":"Wir wandern um den Chiemsee."},{"g":"wann","e":"when","a":"","c":"verb","x":"Wann bist du fertig?"},{"g":"warten","e":"to wait","a":"","c":"verb","x":"Können Sie ein paar Minuten warten?"},{"g":"warum","e":"why","a":"","c":"word","x":"Warum kommt er nicht?"},{"g":"was","e":"what","a":"","c":"word","x":"Was ist das?"},{"g":"was für ein","e":"what kind of","a":"","c":"word","x":"Was für eine Farbe möchten Sie?"},{"g":"(sich) waschen","e":"to wash","a":"","c":"word","x":"Wo kann ich mir die Hände waschen?"},{"g":"das Wasser","e":"the water","a":"das","c":"noun","x":"Ein Glas Wasser, bitte."},{"g":"weh tun","e":"to hurt","a":"","c":"word","x":"Ich muss zum Arzt. Mein Bein tut weh."},{"g":"weiblich","e":"female","a":"","c":"word","x":"Kreuzen Sie bitte an: „weiblich“ oder „männlich“."},{"g":"der Wein","e":"the wine","a":"der","c":"noun","x":"Nein danke, ich möchte keinen Wein."},{"g":"weit","e":"far; wide","a":"","c":"word","x":"Zum Bahnhof ist es nicht weit."},{"g":"weiter","e":"further; onward","a":"","c":"word","x":"Der Bus fährt nicht weiter."},{"g":"welch-","e":"which","a":"","c":"word","x":"Welches Buch möchtest du?"},{"g":"die Welt","e":"the world","a":"die","c":"noun","x":"Es gibt viele Probleme auf der Welt."},{"g":"wenig","e":"little; few","a":"","c":"word","x":"Ich habe leider nur wenig verstanden."},{"g":"wer","e":"who","a":"","c":"word","x":"Wer ist das?"},{"g":"werden","e":"to become","a":"","c":"verb","x":"Mein Sohn will Arzt werden."},{"g":"das Wetter","e":"the weather","a":"das","c":"noun","x":"Wir hatten schlechtes Wetter."},{"g":"wichtig","e":"important","a":"","c":"word","x":"Dieses Formular ist sehr wichtig."},{"g":"wie","e":"how; as","a":"","c":"word","x":"Wie heißt du?"},{"g":"wiederholen","e":"to repeat","a":"","c":"verb","x":"Können Sie das bitte wiederholen?"},{"g":"das Wiederhören","e":"\"goodbye\" (on the phone)","a":"das","c":"noun","x":"Wir müssen jetzt Schluss machen."},{"g":"das Wiedersehen","e":"seeing again; goodbye","a":"das","c":"noun","x":"Auf Wiedersehen!"},{"g":"wie viel","e":"how much","a":"","c":"word","x":"Wie viel Milch nehmen Sie?"},{"g":"willkommen","e":"welcome","a":"","c":"verb","x":"Herzlich willkommen!"},{"g":"der Wind","e":"the wind","a":"der","c":"noun","x":"Der Wind kommt aus Osten."},{"g":"wir","e":"we","a":"","c":"word","x":"Wir lernen Deutsch."},{"g":"wissen","e":"to know (a fact)","a":"","c":"verb","x":"Weißt du, wie er heißt?"},{"g":"wo","e":"where","a":"","c":"word","x":"Wo waren Sie im Urlaub?"},{"g":"woher","e":"where from","a":"","c":"word","x":"Woher kommen Sie?"},{"g":"wohin","e":"where to","a":"","c":"verb","x":"Wohin fährt dieser Bus?"},{"g":"wohnen","e":"to live; reside","a":"","c":"verb","x":"Ich wohne in München."},{"g":"die Wohnung","e":"the apartment; flat","a":"die","c":"noun","x":"Seit wann haben Sie diese Wohnung?"},{"g":"wollen","e":"to want","a":"","c":"verb","x":"Wollen Sie einen Kaffee trinken?"},{"g":"das Wort","e":"the word","a":"das","c":"noun","x":"Ich kenne das Wort nicht."},{"g":"wunderbar","e":"wonderful","a":"","c":"word","x":"Das Essen schmeckt wunderbar."},{"g":"zahlen","e":"to pay","a":"","c":"verb","x":"Zahlen, bitte!"},{"g":"die Zeit","e":"the time","a":"die","c":"noun","x":"Ich habe heute keine Zeit."},{"g":"zurzeit","e":"currently","a":"","c":"word","x":"Zurzeit habe ich sehr viel zu tun."},{"g":"die Zeitung","e":"the newspaper","a":"die","c":"noun","x":"Ich lese gern Zeitung."},{"g":"die Zigarette","e":"the cigarette","a":"die","c":"noun","x":"Wie teuer sind die Zigaretten?"},{"g":"das Zimmer","e":"the room","a":"das","c":"noun","x":"Das Zimmer ist groß."},{"g":"der Zoll","e":"the customs","a":"der","c":"noun","x":"Wir müssen noch durch den Zoll."},{"g":"zu","e":"to; closed; too","a":"","c":"word","x":"Der Bus fährt zum Bahnhof."},{"g":"zufrieden","e":"satisfied; content","a":"","c":"verb","x":"Ich bin mit der Wohnung zufrieden."},{"g":"der Zug","e":"the train","a":"der","c":"noun","x":"Ich fahre gern mit dem Zug."},{"g":"zurück","e":"back","a":"","c":"word","x":"Einmal Frankfurt und zurück."},{"g":"zusammen","e":"together","a":"","c":"verb","x":"Sollen wir zusammen essen gehen?"},{"g":"zwischen","e":"between","a":"","c":"verb","x":"Heidelberg liegt zwischen Frankfurt und Stuttgart."}];
+const PHRASES = [
+ ["Hallo, wie geht es dir?","Hello, how are you?"],
+ ["Mir geht es gut, danke.","I'm doing well, thanks."],
+ ["Wie heißt du?","What's your name?"],
+ ["Ich heiße Anna.","My name is Anna."],
+ ["Woher kommst du?","Where are you from?"],
+ ["Ich komme aus Frankreich.","I come from France."],
+ ["Ich wohne in Berlin.","I live in Berlin."],
+ ["Ich spreche ein bisschen Deutsch.","I speak a little German."],
+ ["Ich verstehe das nicht.","I don't understand that."],
+ ["Kannst du das wiederholen?","Can you repeat that?"],
+ ["Wie viel kostet das?","How much does that cost?"],
+ ["Wo ist der Bahnhof?","Where is the train station?"],
+ ["Ich hätte gern einen Kaffee.","I'd like a coffee."],
+ ["Das Wetter ist heute schön.","The weather is nice today."],
+ ["Ich habe Hunger.","I'm hungry."],
+ ["Entschuldigung, ich habe eine Frage.","Excuse me, I have a question."],
+ ["Danke schön! — Bitte schön!","Thank you! — You're welcome!"],
+ ["Ich gehe nach Hause.","I'm going home."],
+ ["Was machst du heute?","What are you doing today?"],
+ ["Bis morgen!","See you tomorrow!"],
+].map(([g,e])=>({g,e,a:"",c:"phrase",x:""}));
+
+/* ---------------- helpers ---------------- */
+const $=s=>document.querySelector(s);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
+function accepted(c){ if(c.g.startsWith("der/die")) return ["der","die"];
+  return (["der","die","das"].includes(c.a))?[c.a]:[]; }
+function isNoun(c){ return c.c==="noun" && accepted(c).length>0; }
+function bare(c){ const p=c.g.split(/\s+/);
+  return (/^der|die|das/.test(p[0])&&p.length>1)?p.slice(1).join(" "):c.g; }
+
+/* ---------------- speech (on-device German voice) ---------------- */
+const canSpeak = typeof speechSynthesis!=="undefined" && typeof SpeechSynthesisUtterance!=="undefined";
+let AUDIO=true, deVoice=null;
+try{ AUDIO = (localStorage.getItem("ddd_audio")||"on")!=="off"; }catch(e){}
+function pickVoice(){ if(!canSpeak) return;
+  const vs=speechSynthesis.getVoices();
+  deVoice = vs.find(v=>/^de[-_]/i.test(v.lang)) || vs.find(v=>/^de/i.test(v.lang)) || null; }
+if(canSpeak){ pickVoice(); try{ speechSynthesis.addEventListener("voiceschanged",pickVoice); }catch(e){} }
+function speechText(c){ return (c.g||"").replace("der/die ","die "); }
+function speak(text){ if(!canSpeak||!text) return;
+  try{ speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang="de-DE"; if(deVoice) u.voice=deVoice; u.rate=0.88;
+    const btn=document.querySelector(".spk");
+    if(btn){ u.onstart=()=>btn.classList.add("speaking");
+             u.onend=u.onerror=()=>btn.classList.remove("speaking"); }
+    speechSynthesis.speak(u);
+  }catch(e){} }
+function autoSpeak(text){ if(AUDIO) speak(text); }
+const SPK='<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a9 9 0 0 1 0 14"/></svg>';
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
+function spkBtn(say){ return canSpeak?`<button class="spk" data-say="${esc(say)}" aria-label="Hear it in German">${SPK}</button>`:""; }
+
+/* ---------------- persistence (per-device, best effort) ---------------- */
+let STATS={}, DIR="de";
+try{ STATS=JSON.parse(localStorage.getItem("ddd_stats")||"{}"); }catch(e){ STATS={}; }
+try{ DIR=localStorage.getItem("ddd_dir")||"de"; }catch(e){}
+function save(){ try{ localStorage.setItem("ddd_stats",JSON.stringify(STATS)); }catch(e){} }
+function saveDir(){ try{ localStorage.setItem("ddd_dir",DIR); }catch(e){} }
+function record(c,ok){ const s=STATS[c.g]||(STATS[c.g]={s:0,k:0}); s.s++; if(ok)s.k++; save(); }
+function seenCount(){ return Object.keys(STATS).length; }
+function trickyCards(){
+  return WORDS.filter(c=>{const s=STATS[c.g]; return s&&s.s>=2&&s.k/s.s<0.6;})
+              .sort((a,b)=>{const A=STATS[a.g],B=STATS[b.g];return A.k/A.s-B.k/B.s;})
+              .slice(0,24);
+}
+
+/* ---------------- deck definitions ---------------- */
+const nouns=()=>WORDS.filter(c=>c.c==="noun");
+const DECKS=[
+ {id:"noun", nm:"Nouns", sub:"with articles", get:()=>WORDS.filter(c=>c.c==="noun")},
+ {id:"verb", nm:"Verbs", sub:"", get:()=>WORDS.filter(c=>c.c==="verb")},
+ {id:"word", nm:"Other words", sub:"adjectives & more", get:()=>WORDS.filter(c=>c.c==="word")},
+ {id:"phrase", nm:"Starter phrases", sub:"", get:()=>PHRASES},
+ {id:"all", nm:"Everything", sub:"", wide:true, get:()=>WORDS.concat(PHRASES)},
+ {id:"quick", nm:"Quick 20", sub:"random mix", get:()=>shuffle(WORDS.concat(PHRASES)).slice(0,20)},
+ {id:"tricky", nm:"Tricky words", sub:"your weak spots", get:trickyCards},
+ {id:"drill", nm:"Article drill", sub:"der · die · das", drill:true, wide:true, get:nouns},
+];
+
+/* ---------------- home render ---------------- */
+function renderHome(){
+  $("#homeStat").innerHTML = seenCount()
+     ? `<b>${seenCount()}</b> words practised`
+     : `tap a deck to start`;
+  $("#dirSeg").querySelectorAll("button").forEach(b=>
+     b.setAttribute("aria-pressed", b.dataset.dir===DIR));
+  const grid=$("#deckGrid"); grid.innerHTML="";
+  DECKS.forEach(d=>{
+    const n=d.get().length;
+    if(d.id==="tricky" && n<4) return;      // only show once there's data
+    const b=document.createElement("button");
+    b.className="deck"+(d.wide?" wide":"")+(d.drill?" drill":"")+(d.id==="tricky"?" tricky":"");
+    b.innerHTML=`<span class="nm">${d.nm}</span>`+
+      `<span class="ct">${d.sub?d.sub+" · ":""}${n} card${n===1?"":"s"}</span>`;
+    b.onclick=()=>start(d);
+    grid.appendChild(b);
+  });
+}
+$("#dirSeg").onclick=e=>{const b=e.target.closest("button");if(!b)return;
+  DIR=b.dataset.dir; saveDir(); renderHome();};
+$("#resetBtn").onclick=()=>{ STATS={}; save(); renderHome(); };
+
+/* audio toggle + tap-to-hear (delegated, so it survives re-renders) */
+const audioBtn=$("#audioToggle");
+if(!canSpeak) audioBtn.classList.add("hidden");
+audioBtn.setAttribute("aria-pressed", AUDIO);
+audioBtn.onclick=()=>{ AUDIO=!AUDIO;
+  try{ localStorage.setItem("ddd_audio", AUDIO?"on":"off"); }catch(e){}
+  audioBtn.setAttribute("aria-pressed", AUDIO);
+  if(AUDIO) speak("Guten Tag"); };
+$("#stage").addEventListener("click",e=>{ const b=e.target.closest(".spk");
+  if(b){ e.stopPropagation(); speak(b.dataset.say); } });
+
+/* ---------------- session state machine ---------------- */
+let S=null;
+function start(deck){
+  const cards=shuffle(deck.get());
+  if(!cards.length) return;
+  S={deck, mode:deck.drill?"drill":DIR, q:cards, ptr:0, answered:0, correct:0,
+     phase:null, artChosen:null, artOk:true};
+  $("#home").classList.add("hidden");
+  $("#study").classList.remove("hidden");
+  $("#deckName").textContent=deck.drill?"Article drill":deck.nm;
+  $("#deckSub").textContent = deck.drill ? "der · die · das"
+     : (DIR==="de" ? "German → English" : "English → German");
+  renderCard();
+}
+function backHome(){ S=null; $("#study").classList.add("hidden");
+  $("#home").classList.remove("hidden"); renderHome(); }
+$("#backBtn").onclick=backHome;
+
+function updateTop(){
+  const total=S.q.length, done=S.ptr;
+  $("#barFill").style.width=(100*done/total)+"%";
+  $("#scoreBox").innerHTML = S.answered
+     ? `<b>${S.correct}</b>/${S.answered} · ${total-done} left`
+     : `${total} cards`;
+}
+
+function renderCard(){
+  if(S.ptr>=S.q.length) return finish();
+  updateTop();
+  const c=S.q[S.ptr]; S.card=c; S.artChosen=null; S.artOk=true;
+  const stage=$("#stage"), ctl=$("#controls");
+  const nounMode = (S.mode==="drill") || (S.mode==="en" && isNoun(c));
+
+  if(S.mode==="drill"){                               // bare noun → pick article
+    S.phase="article";
+    stage.innerHTML=`<div class="card">
+        <div class="kicker">which article?</div>
+        <div class="term">${bare(c)}</div>
+        ${spkBtn(bare(c))}
+        <div class="example" style="border:0;padding:0;font-style:normal;color:var(--muted)">${c.e}</div>
+      </div>`;
+    ctl.innerHTML=artButtons();
+    wireArticles();
+    autoSpeak(bare(c));
+  } else if(S.mode==="en"){                            // English → German
+    S.phase = nounMode ? "article" : "reveal";
+    stage.innerHTML=`<div class="card">
+        <div class="kicker">say it in German</div>
+        <div class="term" style="font-family:var(--font-ui);font-weight:700">${c.e}</div>
+      </div>`;
+    if(nounMode){ ctl.innerHTML=artButtons(); wireArticles(); }
+    else { ctl.innerHTML=`<button class="btn primary" id="flip">Show answer</button>`;
+           $("#flip").onclick=()=>revealEN(c,false); }
+  } else {                                             // German → English
+    S.phase="reveal";
+    stage.innerHTML=`<div class="card">
+        <div class="kicker">what does it mean?</div>
+        <div class="term ${c.a}">${german(c)}</div>
+        ${spkBtn(speechText(c))}
+      </div>`;
+    ctl.innerHTML=`<button class="btn primary" id="flip">Show answer</button>`;
+    $("#flip").onclick=()=>revealDE(c);
+    autoSpeak(speechText(c));
+  }
+}
+
+function german(c){ // colour the article inside the term
+  const m=c.g.match(/^(der\/die|der|die|das)\s+(.*)$/);
+  return m ? `<span class="art">${m[1]}</span> ${m[2]}` : c.g;
+}
+function artButtons(){
+  return `<div class="arts">
+   <button class="art-btn" data-k="der">der<small>masc.</small></button>
+   <button class="art-btn" data-k="die">die<small>fem.</small></button>
+   <button class="art-btn" data-k="das">das<small>neut.</small></button></div>`;
+}
+function wireArticles(){
+  $("#controls").querySelectorAll(".art-btn").forEach(b=>
+    b.onclick=()=>chooseArticle(b.dataset.k));
+}
+function chooseArticle(k){
+  const c=S.card, ok=accepted(c).includes(k);
+  S.artChosen=k; S.artOk=ok;
+  const btns=$("#controls").querySelectorAll(".art-btn");
+  btns.forEach(b=>{ b.disabled=true;
+    if(accepted(c).includes(b.dataset.k)) b.classList.add("fill");
+    if(b.dataset.k===k && !ok) { b.classList.remove("fill"); b.classList.add("wrong"); }
+  });
+  if(S.mode==="drill"){
+    record(c,ok);
+    S.answered++; if(ok)S.correct++; if(!ok)S.q.push(c);
+    showDrillVerdict(ok);
+  } else {
+    revealEN(c,true);   // en→de noun: article picked, now reveal word
+  }
+}
+function showDrillVerdict(ok){
+  const c=S.card;
+  const card=$("#stage").querySelector(".card");
+  card.insertAdjacentHTML("beforeend",
+    `<div class="verdict ${ok?'ok':'no'}">${ok?'✓ richtig':'✗ '+accepted(c).join('/')+' '+bare(c)}</div>`);
+  const sb=$("#stage").querySelector(".spk"); if(sb) sb.dataset.say=speechText(c);
+  $("#controls").innerHTML=`<button class="btn primary" id="nxt">Next</button>`;
+  $("#nxt").onclick=next;
+  autoSpeak(speechText(c));   // now say it with the article
+}
+
+function revealEN(c,wasNoun){   // english→german: show the German answer + self-mark
+  S.phase="mark";
+  $("#stage").innerHTML=`<div class="card">
+     <div class="kicker">${wasNoun?(S.artOk?'<span style="color:var(--good)">article ✓</span>':'<span style="color:var(--bad)">article ✗</span>'):'in German'}</div>
+     <div class="term ${c.a}">${german(c)}</div>
+     ${spkBtn(speechText(c))}
+     <div class="answer" style="color:var(--muted);font-weight:500">${c.e}</div>
+     ${c.x?`<div class="example">${c.x}</div>`:""}
+   </div>`;
+  markButtons();
+  autoSpeak(speechText(c));
+}
+function revealDE(c){           // german→english
+  S.phase="mark";
+  $("#stage").innerHTML=`<div class="card">
+     <div class="kicker">meaning</div>
+     <div class="term ${c.a}" style="font-size:clamp(1.5rem,6vw,2.2rem)">${german(c)}</div>
+     ${spkBtn(speechText(c))}
+     <div class="answer">${c.e}</div>
+     ${c.x?`<div class="example">${c.x}</div>`:""}
+   </div>`;
+  markButtons();
+}
+function markButtons(){
+  $("#controls").innerHTML=`<div class="row">
+     <button class="btn ghost" id="again">Again</button>
+     <button class="btn primary" id="got">Got it</button></div>`;
+  $("#got").onclick=()=>mark(true);
+  $("#again").onclick=()=>mark(false);
+}
+function mark(gotIt){
+  const c=S.card;
+  const ok = gotIt && S.artOk;      // article error counts as a miss
+  record(c,ok);
+  S.answered++; if(ok)S.correct++; if(!ok)S.q.push(c);
+  next();
+}
+function next(){ S.ptr++; renderCard(); }
+
+function finish(){
+  updateTop();
+  const pct=S.answered?Math.round(100*S.correct/S.answered):0;
+  const msg = pct>=90?"Ausgezeichnet!" : pct>=70?"Gut gemacht!" : pct>=50?"Weiter so!" : "Übung macht den Meister.";
+  $("#stage").innerHTML=`<div class="done">
+     <div class="pct tnum">${pct}%</div>
+     <div class="big">${msg}</div>
+     <p>${S.correct} of ${S.answered} correct</p></div>`;
+  $("#controls").innerHTML=`<div class="row">
+     <button class="btn ghost" id="home2">Decks</button>
+     <button class="btn primary" id="redo">Study again</button></div>`;
+  $("#home2").onclick=backHome;
+  $("#redo").onclick=()=>start(S.deck);
+}
+
+/* keyboard shortcuts (desktop bonus) */
+document.addEventListener("keydown",e=>{
+  if(!S) return;
+  const k=e.key.toLowerCase();
+  if(k==="escape") return backHome();
+  if(S.phase==="article"){ const map={"1":"der","2":"die","3":"das"};
+    if(map[k]) chooseArticle(map[k]); }
+  else if(S.phase==="reveal" && (k===" "||k==="enter")){ e.preventDefault(); $("#flip")?.click(); }
+  else if(S.phase==="mark"){ if(k==="y"||k==="enter"){e.preventDefault();mark(true);} if(k==="n")mark(false); }
+  else if(S.q && S.ptr<S.q.length && $("#nxt") && (k===" "||k==="enter")){e.preventDefault();$("#nxt").click();}
+});
+
+renderHome();
+</script>
+</body>
+</html>
